@@ -1,3 +1,4 @@
+from typing import List
 import logging
 
 import attrs
@@ -53,6 +54,9 @@ class SonicDevice:
     @property
     def protocol(self) -> Protocol:
         return self._protocol
+
+    def has_commands(self, commands: List[CommandCode | Command]) -> bool:
+        return all(map(self.has_command, commands))
 
     def has_command(self, command: CommandCode | Command) -> bool:
         command_code = command.code if isinstance(command, Command) else command

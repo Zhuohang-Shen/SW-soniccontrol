@@ -354,6 +354,24 @@ class GetConnectionStatus(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.GET_CONNECTION_STATUS)
 
+@attrs.define()
+class GetNumTests(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.GET_NUM_TESTS)
+
+@attrs.define()
+class GetTestInfo(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.GET_TEST_INFO)
+
+    index: int = attrs.field()
+
+@attrs.define()
+class RunTest(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.RUN_TEST)
+
+    index: int = attrs.field()
 
 # Legacy specific commands
 
