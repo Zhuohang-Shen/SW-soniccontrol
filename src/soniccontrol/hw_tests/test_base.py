@@ -24,7 +24,7 @@ def _emit_is_running_changed_event(self, attr: attrs.Attribute, value):
 @attrs.define()
 class TestInfo(EventManager):
     index: int = attrs.field()
-    name: str = attrs.field()
+    test_name: str = attrs.field()
     suite_name: str = attrs.field()
     is_running: bool = attrs.field(init=False, default=False, on_setattr=_emit_is_running_changed_event)
     test_result: TestResult | None = attrs.field(init=False, default=None)

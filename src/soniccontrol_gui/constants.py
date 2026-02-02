@@ -279,6 +279,7 @@ class _UIStringsEN:
     TODO: Final[str] = "In the future the INFO tab will provide all necessary information about the Sonic Control and the SonicAmp and furthermore will link a more detailed documentation about both the software and the device. For now if you have any questions feel free to contact us"
     CONTACT: Final[str] = "Contact"
     NEW_LINE: Final[str] = ""
+    RUN_LABEL: Final[str] = "Run"
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 
