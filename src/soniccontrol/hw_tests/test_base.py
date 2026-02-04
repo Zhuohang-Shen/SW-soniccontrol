@@ -13,11 +13,11 @@ class SemiAutomatedStep:
     message: str = attrs.field()
 
 
-def _emit_is_running_changed_event(self, attr: attrs.Attribute, value):
+def _emit_test_result_changed(self, attr: attrs.Attribute, value):
     old_value = getattr(self, attr.name)
 
     if value != old_value:
-        self.emit(PropertyChangeEvent("is_running", old_value, value))
+        self.emit(PropertyChangeEvent("test_result", old_value, value))
 
     return value
 
@@ -26,5 +26,4 @@ class TestInfo(EventManager):
     index: int = attrs.field()
     test_name: str = attrs.field()
     suite_name: str = attrs.field()
-    is_running: bool = attrs.field(init=False, default=False, on_setattr=_emit_is_running_changed_event)
-    test_result: TestResult | None = attrs.field(init=False, default=None)
+    test_result: TestResult | None = attrs.field(init=False, default=None, on_setattr=_emit_test_result_changed)
