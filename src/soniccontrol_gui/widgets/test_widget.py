@@ -15,7 +15,8 @@ class TestWidget(UIComponent):
     def __init__(self, parent: UIComponent, parent_slot: View, test_info: TestInfo):
         self._logger = logging.getLogger(parent.logger.name + "." + TestWidget.__name__)
         self._test_info = test_info
-
+        self._run_button_enabled = False
+        self._stop_button_enabled = False
         self._view = TestWidgetView(parent_slot, self._test_info.suite_name, self._test_info.test_name)
         super().__init__(parent, self._view, self._logger)
 
@@ -27,11 +28,13 @@ class TestWidget(UIComponent):
         running_test_index = e.new_value
         is_a_test_running = running_test_index is not None
         is_this_test_running = is_a_test_running and running_test_index == self._test_info.index
-        self._view.set_run_test_button_enabled(not is_a_test_running)
-        self._view.set_stop_test_button_enabled(is_this_test_running)
+        self._run_button_enabled = not is_a_test_running
+        self._stop_button_enabled = is_this_test_running
+        self._view.set_run_test_button_enabled(self._run_button_enabled)
+        self._view.set_stop_test_button_enabled(self._stop_button_enabled)
 
     def _on_run_test_clicked(self):
-        self.emit(Event(TestWidget.RUN_TEST_EVENT, index=self._test_info.index))
+        self.emit(Event(TestWidget.RUN_TEST_EVENT, test=self._test_info))
 
     def _on_stop_test_clicked(self):
         self.emit(Event(TestWidget.STOP_TEST_EVENT))
@@ -40,10 +43,18 @@ class TestWidget(UIComponent):
         test_result = self._test_info.test_result
         if test_result is None:
             self._view.test_result = ""
+            self._view.set_color_test_result_label(ttk.PRIMARY)
         else:
             self._view.test_result = test_result.assertion_msg
             self._view.set_color_test_result_label(ttk.SUCCESS if test_result.success else ttk.DANGER)
 
+    def enable(self, enabled: bool):
+        if enabled:
+            self._view.set_run_test_button_enabled(self._run_button_enabled)
+            self._view.set_stop_test_button_enabled(self._stop_button_enabled)
+        else:
+            self._view.set_run_test_button_enabled(False)
+            self._view.set_stop_test_button_enabled(False)
 
 class TestWidgetView(View):
     def __init__(self, master: ttk.Frame, suite_name: str, test_name: str, *args, **kwargs) -> None:

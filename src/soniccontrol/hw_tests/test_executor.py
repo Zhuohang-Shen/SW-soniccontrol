@@ -4,7 +4,7 @@ from typing import List
 from sonic_protocol.field_names import EFieldName
 from sonic_protocol.protocols.protocol_v3_0_0.types.types import TestResult as ProtocolTestResult
 from soniccontrol.events import Event, EventManager, PropertyChangeEvent
-from .test_base import SemiAutomatedStep, TestInfo, TestResult
+from .test_base import SemiAutomatedStep, TestInfo, TestResult, TestInteraction
 from soniccontrol.sonic_device import SonicDevice
 import sonic_protocol.python_parser.commands as commands
 
@@ -21,6 +21,7 @@ class TestExecutor(EventManager):
         self._device = device
         self._run_test_task: asyncio.Task | None = None
         self._running_test_index: int | None = None  # either index of running test or none if no test is running
+        self._user_interacted_flag = asyncio.Event()
 
     @property 
     def running_test_index(self) -> int | None:
@@ -58,6 +59,9 @@ class TestExecutor(EventManager):
             self._run_test_task.cancel()
             await self._run_test_task
 
+    def proceed_semi_automated_test(self):
+        self._user_interacted_flag.set()
+
     async def _run_test(self, test: TestInfo):
         try:
             test.test_result = None
@@ -76,12 +80,17 @@ class TestExecutor(EventManager):
 
                 self.emit(Event(
                     TestExecutor.NEEDS_USER_INTERACTION_EVENT, 
-                    semi_automated_step=SemiAutomatedStep(interaction_type, msg)
+                    semi_automated_step=SemiAutomatedStep(interaction_type, msg),
+                    test=test
                 ))
+
+                await self._user_interacted_flag.wait()
+                self._user_interacted_flag.clear()
+
+                if interaction_type == TestInteraction.VALIDATION:
+                    break # user validated test as last step
         except asyncio.CancelledError:
-            # TODO: abort test
-            pass 
-        except Exception as e:
+            await self._device.execute_command(commands.AbortTest())
             raise
         finally:
             self._set_running_test_index(None)

@@ -280,6 +280,10 @@ class _UIStringsEN:
     CONTACT: Final[str] = "Contact"
     NEW_LINE: Final[str] = ""
     RUN_LABEL: Final[str] = "Run"
+    USER_INTERACTION_NEEDED: Final[str] = "User interaction needed"
+    SUCCESS: Final[str] = "Success"
+    FAILURE: Final[str] = "Failure"
+    
 
 ui_labels: Final[_UIStringsEN] = _UIStringsEN()
 

@@ -129,6 +129,7 @@ class PostmanDeviceWindow(DeviceWindow):
             self._updater.subscribe(Updater.UPDATE_EVENT,self._worker_connection_tab.on_update)
             self._updater.start()
             self.app_state.subscribe_property_listener(AppState.APP_EXECUTION_CONTEXT_PROP_NAME, self._worker_connection_tab.on_execution_state_changed)
+            self.app_state.subscribe_property_listener(AppState.APP_EXECUTION_CONTEXT_PROP_NAME, self._serialmonitor.on_execution_state_changed)
 
         except Exception as e:
             self._logger.error(e)

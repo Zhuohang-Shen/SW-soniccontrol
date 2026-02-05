@@ -373,6 +373,11 @@ class RunTest(Command):
 
     index: int = attrs.field()
 
+@attrs.define()
+class AbortTest(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.ABORT_TEST)
+
 # Legacy specific commands
 
 # We need a different auto and wipe command so that procedure instantiator  knows which proc to create
