@@ -185,6 +185,7 @@ class ConnectionWindow(UIComponent):
         self._is_connecting = True
 
         bin_file = self._simulation_exe_path 
+        bin_file = bin_file.expanduser()
         args: List[str] = []
         if self._view.should_start_configurator:
             args.append("--start-configurator=true")
@@ -284,7 +285,7 @@ class ConnectionWindowView(ttk.Window, View):
             textvariable=self._profile,
             style=ttk.DARK,
             state=ttk.READONLY,
-            values=["postman", "worker", "none"]
+            values=["postman", "worker", "diagnostics_tool", "none"]
         )
 
         # --- plugin container (NEW) ---

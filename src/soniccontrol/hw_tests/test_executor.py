@@ -18,6 +18,7 @@ class TestExecutor(EventManager):
     RUNNING_TEST_INDEX_PROPERTY: str = "RUNNING_TEST_INDEX"
 
     def __init__(self, device: SonicDevice):
+        super().__init__()
         self._device = device
         self._run_test_task: asyncio.Task | None = None
         self._running_test_index: int | None = None  # either index of running test or none if no test is running
