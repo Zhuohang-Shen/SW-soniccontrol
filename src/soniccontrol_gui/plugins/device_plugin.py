@@ -14,6 +14,7 @@ from soniccontrol_gui.views.core.device_window import DeviceWindow, KnownDeviceW
 from importlib.metadata import entry_points
 
 from soniccontrol_gui.views.core.postman_window import PostmanDeviceWindow
+from soniccontrol_gui.views.core.diagnostics_window import DiagnosticsWindow
 
 
 class WindowFactoryBase(abc.ABC):
@@ -28,6 +29,10 @@ class KnownDeviceWindowFactory(WindowFactoryBase):
 class PostmanDeviceWindowFactory(WindowFactoryBase):
     def __call__(self, device: SonicDevice, root: tk.Tk, connection_name: str, **kwargs) -> DeviceWindow:
         return PostmanDeviceWindow(device, root, connection_name)
+    
+class DiagnosticsWindowFactory(WindowFactoryBase):
+    def __call__(self, device: SonicDevice, root: tk.Tk, connection_name: str, **kwargs) -> DeviceWindow:
+        return DiagnosticsWindow(device, root, connection_name)
 
 
 @attrs.define(hash=True)
@@ -65,6 +70,9 @@ DevicePluginRegistry.register_device_plugin(
 )
 DevicePluginRegistry.register_device_plugin(
     DevicePlugin(DeviceType.POSTMAN, PostmanDeviceWindowFactory(), _operator_protocol_factory)
+)
+DevicePluginRegistry.register_device_plugin(
+    DevicePlugin(DeviceType.DIAGNOSTICS_TOOL, DiagnosticsWindowFactory(), _operator_protocol_factory)
 )
 
 def register_device_plugins():
