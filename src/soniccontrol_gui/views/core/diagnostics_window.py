@@ -46,6 +46,7 @@ class HwTestingTab(UIComponent):
             self._test_executor.subscribe_property_listener(TestExecutor.RUNNING_TEST_INDEX_PROPERTY, test_widget.on_running_test_index_changed)
 
             self._test_widgets.append(test_widget)
+        self._view.update_idletasks() # is needed to update the scroll view, so that it shows the widgets inside
 
     def _on_run_test_with_index(self, e: Event):
         test = e.data["test"]
@@ -128,7 +129,7 @@ class HwTestingTabView(TabView):
 
     def _initialize_publish(self) -> None:
         self._scroll_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING)
-        self._test_frame.grid(row=0, column=0, sticky=ttk.NS)
+        self._test_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.LARGE_PADDING, pady=sizes.LARGE_PADDING)
 
     @property
     def tests_frame(self) -> View:

@@ -39,13 +39,13 @@ class TestWidget(UIComponent):
     def _on_stop_test_clicked(self):
         self.emit(Event(TestWidget.STOP_TEST_EVENT))
 
-    def _on_test_result_changed(self, _):
-        test_result = self._test_info.test_result
+    def _on_test_result_changed(self, event: PropertyChangeEvent):
+        test_result = event.new_value
         if test_result is None:
             self._view.test_result = ""
             self._view.set_color_test_result_label(ttk.PRIMARY)
         else:
-            self._view.test_result = test_result.assertion_msg
+            self._view.test_result = ui_labels.SUCCESS if test_result.success else (ui_labels.FAILURE + ": " + test_result.assertion_msg)
             self._view.set_color_test_result_label(ttk.SUCCESS if test_result.success else ttk.DANGER)
 
     def enable(self, enabled: bool):
@@ -76,9 +76,10 @@ class TestWidgetView(View):
         self.pack(fill=ttk.X, side=ttk.TOP, pady=sizes.MEDIUM_PADDING)
 
         self._suite_label.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
-        self._test_label.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING, expand=True)
+        self._test_label.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
+        self._stop_test_button.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING)
         self._run_test_button.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING)
-        self._test_result_label.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING)
+        self._test_result_label.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING, expand=True)
 
     @property
     def test_result(self) -> str:
@@ -101,5 +102,5 @@ class TestWidgetView(View):
         self._stop_test_button.configure(state=ttk.NORMAL if enabled else ttk.DISABLED)
 
     def set_color_test_result_label(self, color: str) -> None:
-        self._test_result_label.configure(style=color)
+        self._test_result_label.configure(bootstyle=color)
     
