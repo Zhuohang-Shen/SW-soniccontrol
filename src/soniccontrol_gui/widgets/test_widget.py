@@ -64,14 +64,6 @@ class TestWidgetView(View):
         self._index = index
         super().__init__(master, *args, **kwargs)
 
-    @staticmethod
-    def configure_parent_slot_grid(frame_slot: View):
-        frame_slot.columnconfigure(0, weight=sizes.DONT_EXPAND)
-        frame_slot.columnconfigure(1, weight=sizes.DONT_EXPAND)
-        frame_slot.columnconfigure(2, weight=sizes.EXPAND)
-        frame_slot.columnconfigure(3, weight=sizes.DONT_EXPAND)
-        frame_slot.columnconfigure(4, weight=sizes.DONT_EXPAND)
-
     def _initialize_children(self) -> None:
         self._suite_label = ttk.Label(self._master, text=self._suite_name)
         self._test_label = ttk.Label(self._master, text=self._test_name)
@@ -83,12 +75,18 @@ class TestWidgetView(View):
         self._stop_test_button = ttk.Button(self._master, text=ui_labels.STOP_LABEL)
 
     def _initialize_publish(self) -> None:
+        self._master.columnconfigure(0, weight=sizes.DONT_EXPAND)
+        self._master.columnconfigure(1, weight=sizes.DONT_EXPAND)
+        self._master.columnconfigure(2, weight=sizes.EXPAND)
+        self._master.columnconfigure(3, weight=sizes.DONT_EXPAND)
+        self._master.columnconfigure(4, weight=sizes.DONT_EXPAND)
         self._master.rowconfigure(self._index, weight=sizes.EXPAND)
-        self._suite_label.grid(row=self._index, column=0, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
-        self._test_label.grid(row=self._index, column=1, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
-        self._test_result_label.grid(row=self._index, column=2, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
-        self._run_test_button.grid(row=self._index, column=3, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
-        self._stop_test_button.grid(row=self._index, column=4, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+
+        self._suite_label.grid(row=self._index, column=0, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING, pady=sizes.SMALL_PADDING)
+        self._test_label.grid(row=self._index, column=1, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING, pady=sizes.SMALL_PADDING)
+        self._test_result_label.grid(row=self._index, column=2, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING, pady=sizes.SMALL_PADDING)
+        self._run_test_button.grid(row=self._index, column=3, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING, pady=sizes.SMALL_PADDING)
+        self._stop_test_button.grid(row=self._index, column=4, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING, pady=sizes.SMALL_PADDING)
         
     @property
     def test_result(self) -> str:

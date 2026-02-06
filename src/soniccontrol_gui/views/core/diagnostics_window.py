@@ -63,7 +63,9 @@ class HwTestingTab(UIComponent):
 
         if semi_automated_step.interaction == TestInteraction.PHYSICAL_INTERACTION:
             msg_box = MessageBox(self._view.root, semi_automated_step.message, ui_labels.USER_INTERACTION_NEEDED, [DialogOptions.PROCEED])
-            await msg_box.wait_for_answer()
+            answer = await msg_box.wait_for_answer()
+            if answer is None or answer != DialogOptions.PROCEED:
+                return # in case the window was closed, do not proceed the test. Do nothing
         elif semi_automated_step.interaction == TestInteraction.VALIDATION:
             msg_box = MessageBox(self._view.root, semi_automated_step.message, ui_labels.USER_INTERACTION_NEEDED, [DialogOptions.YES, DialogOptions.NO])
             answer = await msg_box.wait_for_answer()
@@ -130,7 +132,6 @@ class HwTestingTabView(TabView):
     def _initialize_publish(self) -> None:
         self._scroll_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING)
         self._test_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.LARGE_PADDING, pady=sizes.LARGE_PADDING)
-        TestWidgetView.configure_parent_slot_grid(self._test_frame) #type: ignore
 
     @property
     def tests_frame(self) -> View:

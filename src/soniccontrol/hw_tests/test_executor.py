@@ -56,6 +56,9 @@ class TestExecutor(EventManager):
         self._run_test_task = asyncio.create_task(self._run_test(test))
 
     async def stop_test(self):
+        # actually stopping tests does not make sense at the moment, because test results are given instantly 
+        # and are not polled
+        # However maybe this will change in the future
         if self._run_test_task is not None:
             self._run_test_task.cancel()
             await self._run_test_task
