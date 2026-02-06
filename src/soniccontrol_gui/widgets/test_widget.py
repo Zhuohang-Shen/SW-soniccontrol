@@ -17,7 +17,8 @@ class TestWidget(UIComponent):
         self._test_info = test_info
         self._run_button_enabled = False
         self._stop_button_enabled = False
-        self._view = TestWidgetView(parent_slot, self._test_info.suite_name, self._test_info.test_name)
+        self._view = TestWidgetView(parent_slot, self._test_info.index, 
+                                    self._test_info.suite_name, self._test_info.test_name)
         super().__init__(parent, self._view, self._logger)
 
         self._view.set_run_test_button_callback(self._on_run_test_clicked)
@@ -57,30 +58,38 @@ class TestWidget(UIComponent):
             self._view.set_stop_test_button_enabled(False)
 
 class TestWidgetView(View):
-    def __init__(self, master: ttk.Frame, suite_name: str, test_name: str, *args, **kwargs) -> None:
+    def __init__(self, master: ttk.Frame, index: int, suite_name: str, test_name: str, *args, **kwargs) -> None:
         self._suite_name = suite_name
         self._test_name = test_name
+        self._index = index
         super().__init__(master, *args, **kwargs)
 
-    def _initialize_children(self) -> None:
-        self._suite_label = ttk.Label(self, text=self._suite_name)
-        self._test_label = ttk.Label(self, text=self._test_name)
-        
-        self._test_result_text_var = ttk.StringVar(self, value="")
-        self._test_result_label = ttk.Label(self, textvariable=self._test_result_text_var)
+    @staticmethod
+    def configure_parent_slot_grid(frame_slot: View):
+        frame_slot.columnconfigure(0, weight=sizes.DONT_EXPAND)
+        frame_slot.columnconfigure(1, weight=sizes.DONT_EXPAND)
+        frame_slot.columnconfigure(2, weight=sizes.EXPAND)
+        frame_slot.columnconfigure(3, weight=sizes.DONT_EXPAND)
+        frame_slot.columnconfigure(4, weight=sizes.DONT_EXPAND)
 
-        self._run_test_button = ttk.Button(self, text=ui_labels.RUN_LABEL)
-        self._stop_test_button = ttk.Button(self, text=ui_labels.STOP_LABEL)
+    def _initialize_children(self) -> None:
+        self._suite_label = ttk.Label(self._master, text=self._suite_name)
+        self._test_label = ttk.Label(self._master, text=self._test_name)
+        
+        self._test_result_text_var = ttk.StringVar(self._master, value="")
+        self._test_result_label = ttk.Label(self._master, textvariable=self._test_result_text_var)
+
+        self._run_test_button = ttk.Button(self._master, text=ui_labels.RUN_LABEL)
+        self._stop_test_button = ttk.Button(self._master, text=ui_labels.STOP_LABEL)
 
     def _initialize_publish(self) -> None:
-        self.pack(fill=ttk.X, side=ttk.TOP, pady=sizes.MEDIUM_PADDING)
-
-        self._suite_label.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
-        self._test_label.pack(side=ttk.LEFT, padx=sizes.SMALL_PADDING)
-        self._stop_test_button.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING)
-        self._run_test_button.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING)
-        self._test_result_label.pack(side=ttk.RIGHT, padx=sizes.SMALL_PADDING, expand=True)
-
+        self._master.rowconfigure(self._index, weight=sizes.EXPAND)
+        self._suite_label.grid(row=self._index, column=0, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+        self._test_label.grid(row=self._index, column=1, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+        self._test_result_label.grid(row=self._index, column=2, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+        self._run_test_button.grid(row=self._index, column=3, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+        self._stop_test_button.grid(row=self._index, column=4, sticky=ttk.NSEW, padx=sizes.SMALL_PADDING)
+        
     @property
     def test_result(self) -> str:
         return self._test_result_text_var.get()

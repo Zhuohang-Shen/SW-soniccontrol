@@ -19,7 +19,7 @@ import ttkbootstrap as ttk
 from soniccontrol_gui.constants import ui_labels, sizes
 from soniccontrol_gui.resources import images
 from soniccontrol_gui.widgets.message_box import DialogOptions, MessageBox
-from soniccontrol_gui.widgets.test_widget import TestWidget
+from soniccontrol_gui.widgets.test_widget import TestWidget, TestWidgetView
 
 
 
@@ -130,6 +130,7 @@ class HwTestingTabView(TabView):
     def _initialize_publish(self) -> None:
         self._scroll_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.MEDIUM_PADDING, pady=sizes.MEDIUM_PADDING)
         self._test_frame.pack(fill=ttk.BOTH, expand=True, padx=sizes.LARGE_PADDING, pady=sizes.LARGE_PADDING)
+        TestWidgetView.configure_parent_slot_grid(self._test_frame) #type: ignore
 
     @property
     def tests_frame(self) -> View:
