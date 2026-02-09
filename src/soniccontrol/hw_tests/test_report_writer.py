@@ -31,6 +31,5 @@ def main():
     TestReportWriter.write_test_report(tests, Path("./output/test_report.html"))
 
 
-
 if __name__ == "__main__":
     main()

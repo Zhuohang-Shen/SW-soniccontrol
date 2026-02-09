@@ -55,6 +55,12 @@ class TestExecutor(EventManager):
 
         self._run_test_task = asyncio.create_task(self._run_test(test))
 
+    async def await_run_test(self, test: TestInfo):
+        if self._run_test_task is not None and not self._run_test_task.done():
+            raise TestExecutionException("There is already a Test executing") 
+    
+        await self._run_test(test)
+
     async def stop_test(self):
         # actually stopping tests does not make sense at the moment, because test results are given instantly 
         # and are not polled
@@ -79,7 +85,11 @@ class TestExecutor(EventManager):
                 msg = answer.field_value_dict[EFieldName.MESSAGE]
 
                 if test_result_value != ProtocolTestResult.SEMI_AUTOMATED_STEP:
-                    test.test_result = TestResult(test_result_value == ProtocolTestResult.SUCCESS, msg)
+                    was_successful = test_result_value == ProtocolTestResult.SUCCESS
+                    test.test_result = TestResult(
+                        was_successful, 
+                        "Success" if was_successful else msg
+                    )
                     break
 
                 self.emit(Event(
