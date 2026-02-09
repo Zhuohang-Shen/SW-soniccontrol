@@ -26,7 +26,7 @@ class TestInfo(EventManager):
     index: int = attrs.field()
     test_name: str = attrs.field()
     suite_name: str = attrs.field()
-    test_result: TestResult | None = attrs.field(init=False, default=None, on_setattr=_emit_test_result_changed)
+    test_result: TestResult | None = attrs.field(default=None, on_setattr=_emit_test_result_changed)
 
     def __attrs_post_init__(self):
         super().__init__()
