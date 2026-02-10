@@ -42,7 +42,7 @@ def deduce_param_limits(consts: DeviceParamConstants, param_def: CommandParamDef
     return list(map(str, param_limits))
     
 
-def deduce_command_examples(protocol_version: Version, device_type: DeviceType, is_release: bool = False, options: str = "") -> List[str]:
+def deduce_command_examples(protocol_version: Version, device_type: DeviceType, is_release: bool = False, options: str = "", skip_command_codes: List[str] = []) -> List[str]:
     """
     description:
     This function generates example commands, based on the command_identifiers and limits specified in the protocol.
@@ -61,6 +61,9 @@ def deduce_command_examples(protocol_version: Version, device_type: DeviceType, 
         command_def = command_contract.command_def
 
         if command_def is None:
+            continue
+
+        if command_contract.code.name in skip_command_codes:
             continue
         
         assert (not isinstance(command_def.sonic_text_attrs, list))

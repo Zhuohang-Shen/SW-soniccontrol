@@ -113,32 +113,22 @@ Test if freq set by setter can be retrieved with getter
 Send Example Commands
     [Tags]    expensive_to_run
     #[Timeout]   1 minutes
-    ${command_examples_list}=    RemoteController.Deduce list of command examples
+    ${commands_to_skip}=    Create List    RESTART_DEVICE    SET_FLASH_USB    SET_FLASH_9600    SET_FLASH_115200    START_OPERATOR    START_CONFIGURATOR    GO_INTO_DEVICE_STATE
+    ${command_examples_list}=    RemoteController.Deduce list of command examples    skip_command_codes=${commands_to_skip}
     IF    "${TARGET}" != 'simulation'
         #We cannot use stop right now, because it will return an error when there is no procedure running
-        Remove Values From List    ${command_examples_list}    !FLASH_USB    !FLASH_UART_SLOW    !FLASH_UART_FAST    !stop
+        Remove Values From List    ${command_examples_list}    !stop
     END
     ${num_iterations} =    Get Length    ${command_examples_list}
     FOR  ${i}    ${command_example}  IN ENUMERATE    @{command_examples_list}
-        IF     ${i} >= 0   #So we can skip commands, used for debugging
-            IF    '${command_example}' not in ['!FLASH_USB', '!FLASH_UART_SLOW', '!FLASH_UART_FAST', "!restart", "restart_device"]
-                Run Keyword and Continue on Failure    Send command and check if the device crashes    ${command_example} 
-                Reconnect if disconnected
-                
+        Run Keyword and Continue on Failure    Send command and check if the device crashes    ${command_example} 
+        Reconnect if disconnected
 
-                Run Keyword and Continue on Failure    RemoteController.Send Command    !log[global]=ERROR
-                Run Keyword and Continue on Failure    RemoteController.Send Command    !stop
-                Run Keyword and Continue on Failure    RemoteController.Send Command    !sonic_force
-                Run Keyword And Continue On Failure    RemoteController.Send Command    !clear_errors
-                Run Keyword and Continue on Failure    RemoteController.Send Command    !control_mode=remote
+        Run Keyword and Continue on Failure    RemoteController.Send Command    !log[global]=ERROR
+        Run Keyword and Continue on Failure    RemoteController.Send Command    !stop
+        Run Keyword and Continue on Failure    RemoteController.Send Command    !sonic_force
+        Run Keyword And Continue On Failure    RemoteController.Send Command    !clear_errors
+        Run Keyword and Continue on Failure    RemoteController.Send Command    !control_mode=remote
 
-                Log To Console    Progress: Completed ${${i} + 1}/${num_iterations} iterations
-            ELSE
-                Log To Console    Skipped: ${command_example}
-            END
-            
-            
-        ELSE
-            Log To Console    Progress: Skip ${${i} + 1}/${num_iterations} iterations
-        END
+        Log To Console    Progress: Completed ${${i} + 1}/${num_iterations} iterations  
     END

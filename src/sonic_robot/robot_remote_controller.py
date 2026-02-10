@@ -53,10 +53,10 @@ class RobotRemoteController:
         return self._convert_answer(answer)
 
     @keyword('Deduce list of command examples')
-    def deduce_command_examples(self) -> List[str]:
+    def deduce_command_examples(self, skip_command_codes: List[str] = []) -> List[str]:
         assert (self._controller._device is not None)
         info = self._controller._device.info
-        return deduce_command_examples(info.protocol_version, info.device_type)
+        return deduce_command_examples(info.protocol_version, info.device_type, skip_command_codes=skip_command_codes)
 
     @keyword('Execute script')
     def execute_script(self, text: str) -> None:

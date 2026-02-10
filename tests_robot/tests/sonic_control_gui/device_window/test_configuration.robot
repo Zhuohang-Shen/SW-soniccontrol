@@ -10,7 +10,7 @@ Test Teardown    Set configuration tab to default
 ${CONFIGURATION_TIME}    5000
 
 ${ATF_1}    200000
-${ATK_1}    10.0
+${ATK_1}    10
 ${ATT_1}    21.0
 
 ${INIT_SCRIPT}
