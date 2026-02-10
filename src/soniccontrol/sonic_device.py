@@ -102,6 +102,7 @@ class SonicDevice:
         if answer_validator is None or not self._should_validate_answers:
             # In open rescue mode, if we cannot understand the answers of the device.
             # So in rescue mode, we skip the validation of the answers
+            # Also for the serial monitor we do not want to validate answers.
             answer = Answer(response_str, False, was_validated=False)
         else:
             answer = answer_validator.validate(response_str)
