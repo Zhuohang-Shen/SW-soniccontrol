@@ -51,7 +51,7 @@ class RemoteController:
 
         device_builder = DeviceBuilder(logger=logger)
 
-        communicator = SerialCommunicator(logger=self._logger) # type: ignore
+        communicator = SerialCommunicator(logger=logger) # type: ignore
         await communicator.open_communication(connection)
         device = await device_builder.build_amp(communicator)
         
@@ -141,6 +141,10 @@ class RemoteController:
     @property 
     def protocol_consts(self):
         return self._device.protocol.consts
+    
+    @property
+    def device_info(self): 
+        return self._device.info
 
 
 

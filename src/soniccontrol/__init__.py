@@ -4,6 +4,7 @@ from soniccontrol.remote_controller import RemoteController
 from sonic_protocol.python_parser import commands
 from sonic_protocol.python_parser.answer import Answer
 from sonic_protocol.field_names import EFieldName
+from sonic_protocol.schema import DeviceParamConstantType
 from soniccontrol.procedures.procs import ScanArgs, AutoArgs, TuneArgs, WipeArgs, RamperArgs, SpectrumMeasureArgs
 from soniccontrol.data_capturing.experiment import Experiment, ExperimentMetaData
 from soniccontrol.data_capturing.experiment_store import HDF5ExperimentReader, HDF5ExperimentWriter

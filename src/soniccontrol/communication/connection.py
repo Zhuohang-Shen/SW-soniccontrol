@@ -62,8 +62,9 @@ class CLIConnection(Connection):
         # ensure that on program exit the clean up is called. Else the process gets not terminated sometimes
         atexit.register(self.close_connection)
         
+        expanded_bin_file = Path(self.bin_file).expanduser()
         self.process = await asyncio.create_subprocess_exec(
-            str(self.bin_file),
+            str(expanded_bin_file),
             *self.cmd_args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,

@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+from sonic_protocol.command_codes import CommandCode
 from sonic_protocol.schema import CommandParamDef, DeviceParamConstantType, DeviceParamConstants, DeviceType, ProtocolType, Version
 from sonic_protocol.protocol import protocol_list as operator_protocol_factory
 from soniccontrol_gui.plugins.device_plugin import DevicePluginRegistry, register_device_plugins
@@ -42,7 +43,7 @@ def deduce_param_limits(consts: DeviceParamConstants, param_def: CommandParamDef
     return list(map(str, param_limits))
     
 
-def deduce_command_examples(protocol_version: Version, device_type: DeviceType, is_release: bool = False, options: str = "", skip_command_codes: List[str] = []) -> List[str]:
+def deduce_command_examples(protocol_version: Version, device_type: DeviceType, is_release: bool = False, options: str = "", skip_command_codes: List[CommandCode] = []) -> List[str]:
     """
     description:
     This function generates example commands, based on the command_identifiers and limits specified in the protocol.
@@ -63,7 +64,7 @@ def deduce_command_examples(protocol_version: Version, device_type: DeviceType, 
         if command_def is None:
             continue
 
-        if command_contract.code.name in skip_command_codes:
+        if command_contract.code in skip_command_codes:
             continue
         
         assert (not isinstance(command_def.sonic_text_attrs, list))

@@ -1,16 +1,19 @@
+from typing import Any, List, Tuple
 import pytest
 import pytest_asyncio
+from sonic_protocol.schema import DeviceParamConstants
+from soniccontrol import DeviceParamConstantType
 from soniccontrol.communication.connection import CLIConnection, SerialConnection
 from soniccontrol.remote_controller_v2 import RemoteController
-from .conftest import Profile
+from tests.integration_tests.conftest import Profile
 import os
 from pathlib import Path
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="package", autouse=True)
 async def remote_controller(request):
     # setup
-    profile = Profile(request.config.getoption("--profile"))
+    profile = Profile[request.config.getoption("--profile")]
     url = request.config.getoption("--url")
 
     simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
@@ -28,6 +31,8 @@ async def remote_controller(request):
 
     controller = await RemoteController.connect(connection)
 
+    assert controller.is_connected, "Controller not connected to device"
+
     # return
     yield controller
 
@@ -40,3 +45,31 @@ async def remote_controller(request):
     elif profile == Profile.simulation_descale:
         os.rmdir(data_dir_path / "test_descale")
 
+
+def format_command(command_fmt_str: str, *args, consts: DeviceParamConstants | None = None):    
+    if len(args) == 0:
+        return command_fmt_str
+    
+    if consts is None:
+        return command_fmt_str.format(*args)
+
+    deduced_args = []
+    for arg in args:
+        deduced_arg = getattr(consts, arg.value) if isinstance(arg, DeviceParamConstantType) else arg
+        deduced_args.append(deduced_arg)
+
+    return command_fmt_str.format(*deduced_args)
+    
+
+@pytest.fixture(scope="function")
+def formatted_command_str(request, remote_controller):
+    command_fmt_str, args = request.param
+    consts = remote_controller.protocol_consts
+
+    if args is None:
+        return command_fmt_str
+    
+    if not isinstance(args, list):
+        args = [ args ]
+
+    return format_command(command_fmt_str, *args, consts=consts)
