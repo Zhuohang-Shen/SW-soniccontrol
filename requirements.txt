@@ -1,4 +1,6 @@
 aiofiles==24.1.0
+allure-pytest==2.15.3
+allure-python-commons==2.15.3
 altair==5.5.0
 altgraph==0.17.4
 astroid==3.2.4

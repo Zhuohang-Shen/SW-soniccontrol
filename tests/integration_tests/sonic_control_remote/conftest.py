@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, List, Tuple
 import pytest
 import pytest_asyncio
@@ -11,7 +12,7 @@ from pathlib import Path
 
 
 @pytest_asyncio.fixture(scope="package", autouse=True)
-async def remote_controller(request):
+async def remote_controller(request, async_loop):
     # setup
     profile = Profile[request.config.getoption("--profile")]
     url = request.config.getoption("--url")
@@ -30,7 +31,8 @@ async def remote_controller(request):
             connection = SerialConnection(profile.name, url)
 
     controller = await RemoteController.connect(connection)
-
+    await controller.stop_updater()
+    
     assert controller.is_connected, "Controller not connected to device"
 
     # return

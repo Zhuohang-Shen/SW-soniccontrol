@@ -72,7 +72,8 @@ testpaths = ["tests"]
 # tell the coverage tool to look how much of soniccontrol stastements was covered by the test
 addopts = [
     "--cov=soniccontrol", 
-    "--import-mode=importlib"
+    "--import-mode=importlib",
+    "--alluredir=./output/allure"
 ]
 
 # linter and testing tools
