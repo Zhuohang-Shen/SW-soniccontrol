@@ -60,13 +60,14 @@ class RemoteController:
             worker_communicator = PostmanProxyCommunicator(communicator)
             await worker_communicator.open_communication(connection)
             device = await device_builder.build_amp(worker_communicator)
+            
+            loop = asyncio.get_running_loop()
             worker_communicator.subscribe(
                 communicator.DISCONNECTED_EVENT, 
-                lambda _: asyncio.get_event_loop().run_until_complete(postman.disconnect())
+                lambda _: loop.run_until_complete(postman.disconnect())
             )
 
         return RemoteController(device, logger)
-
 
     def is_connected(self) -> bool:
         return self._device.communicator.connection_opened.is_set()
@@ -92,6 +93,9 @@ class RemoteController:
     
     async def get_update(self) -> Answer:
         return await self._device.get_update()
+    
+    async def stop_running_processes(self) -> None:
+        await self._device.stop_running_processes()
 
     async def execute_script(self, text: str, callback: Callable[[str], None] = lambda _: None) -> None:
         runnable_script = self._scripting.parse_script(text)

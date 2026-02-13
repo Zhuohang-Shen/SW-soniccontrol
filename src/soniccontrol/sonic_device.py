@@ -204,5 +204,16 @@ class SonicDevice:
     async def get_update(self, raise_exception:bool=False, should_log:bool=False) -> Answer:
         return await self.execute_command(self._update_command, raise_exception=raise_exception, should_log=should_log)
 
-
+    async def stop_running_processes(self):
+        """
+            Goes out of service mode, stops running procedures. 
+            The device will be afterwards idle and ready to accept any command.
+        """
+        if self.has_command(commands.SetStop()):
+            await self.execute_command(commands.SetStop(), raise_exception=False)
+        # We cant use SetOff for the crystal+ device because it is not ready yet
+        if self.has_command(commands.SetOff()) and self.info.device_type == DeviceType.CRYSTAL:
+            await self.execute_command(commands.SetOff(), raise_exception=False)
+        if self.has_command(commands.SonicForce()):
+            await self.execute_command(commands.SonicForce(), raise_exception=False)
 

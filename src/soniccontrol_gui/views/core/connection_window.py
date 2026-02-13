@@ -89,13 +89,7 @@ class DeviceWindowManager:
         if device_type in [DeviceType.MVP_WORKER, DeviceType.DESCALE, DeviceType.CRYSTAL, DeviceType.UNKNOWN]:
             # some devices are automatically in default routine.
             # To force them out of that, send the !sonic_force command
-            if sonicamp.has_command(cmds.SetStop()):
-                await sonicamp.execute_command(cmds.SetStop(), raise_exception=False)
-            # We cant use SetOff for the crystal+ device because it is not ready yet
-            if sonicamp.has_command(cmds.SetOff()) and not is_legacy_device:
-                await sonicamp.execute_command(cmds.SetOff(), raise_exception=False)
-            if sonicamp.has_command(cmds.SonicForce()):
-                await sonicamp.execute_command(cmds.SonicForce(), raise_exception=False)
+            await sonicamp.stop_running_processes()
         
         if device_type != DeviceType.UNKNOWN:
             logger.info("Created device successfully, open device window")

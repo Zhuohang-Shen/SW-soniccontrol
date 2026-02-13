@@ -10,9 +10,8 @@ from tests.integration_tests.conftest import Profile
 import os
 from pathlib import Path
 
-
-@pytest_asyncio.fixture(scope="package", autouse=True)
-async def remote_controller(request, async_loop):
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def remote_controller(request):
     # setup
     profile = Profile[request.config.getoption("--profile")]
     url = request.config.getoption("--url")
@@ -32,6 +31,7 @@ async def remote_controller(request, async_loop):
 
     controller = await RemoteController.connect(connection)
     await controller.stop_updater()
+    await controller.stop_running_processes()
     
     assert controller.is_connected, "Controller not connected to device"
 

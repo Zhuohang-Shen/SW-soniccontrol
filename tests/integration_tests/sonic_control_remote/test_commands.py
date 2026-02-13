@@ -9,9 +9,9 @@ from sonic_robot.deduce_command_examples import deduce_command_examples
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("formatted_command_str", [
-    ("!g=%s", DeviceParamConstantType.MIN_GAIN),
-    ("!gain=%s", DeviceParamConstantType.MIN_GAIN),
-    ("set_gain=%s", DeviceParamConstantType.MIN_GAIN),
+    ("!g={}", DeviceParamConstantType.MIN_GAIN),
+    ("!gain={}", DeviceParamConstantType.MIN_GAIN),
+    ("set_gain={}", DeviceParamConstantType.MIN_GAIN),
     ("-", None),
     ("get_update", None),
     ("?g", None),
@@ -27,11 +27,11 @@ async def test_if_aliases_are_working(formatted_command_str, remote_controller):
 async def test_if_gain_can_be_set_and_retrieved(remote_controller):
     consts = remote_controller.protocol_consts
 
-    answer = await remote_controller.send_command(format_command("!gain=%s", consts.min_gain))
+    answer = await remote_controller.send_command(format_command("!gain={}", consts.min_gain))
     answer = await remote_controller.send_command("?gain")
     assert_answer(answer, { EFieldName.GAIN: consts.min_gain })
 
-    await remote_controller.send_command(format_command("!gain=%s", consts.max_gain))
+    await remote_controller.send_command(format_command("!gain={}", consts.max_gain))
     answer = await remote_controller.send_command("?gain")
     assert_answer(answer, { EFieldName.GAIN: consts.max_gain })
 
