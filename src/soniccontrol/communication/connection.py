@@ -60,7 +60,7 @@ class CLIConnection(Connection):
 
     async def open_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         # ensure that on program exit the clean up is called. Else the process gets not terminated sometimes
-        atexit.register(self.close_connection)
+        atexit.register(lambda: asyncio.get_event_loop().run_until_complete(self.close_connection()))
         
         expanded_bin_file = Path(self.bin_file).expanduser()
         self.process = await asyncio.create_subprocess_exec(

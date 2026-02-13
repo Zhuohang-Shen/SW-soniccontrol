@@ -6,7 +6,10 @@ from tests.integration_tests.sonic_control_remote.conftest import format_command
 import pytest
 from pytest_check.context_manager import check
 from sonic_robot.deduce_command_examples import deduce_command_examples
+import allure
 
+
+@allure.title("Test aliases")
 @pytest.mark.asyncio
 @pytest.mark.parametrize("formatted_command_str", [
     ("!g={}", DeviceParamConstantType.MIN_GAIN),
@@ -22,12 +25,12 @@ async def test_if_aliases_are_working(formatted_command_str, remote_controller):
     answer = await remote_controller.send_command(formatted_command_str)
     assert answer.valid, "Answer should be valid"
 
-
+@allure.title("Test set and get")
 @pytest.mark.asyncio
 async def test_if_gain_can_be_set_and_retrieved(remote_controller):
     consts = remote_controller.protocol_consts
 
-    answer = await remote_controller.send_command(format_command("!gain={}", consts.min_gain))
+    await remote_controller.send_command(format_command("!gain={}", consts.min_gain))
     answer = await remote_controller.send_command("?gain")
     assert_answer(answer, { EFieldName.GAIN: consts.min_gain })
 
@@ -35,7 +38,7 @@ async def test_if_gain_can_be_set_and_retrieved(remote_controller):
     answer = await remote_controller.send_command("?gain")
     assert_answer(answer, { EFieldName.GAIN: consts.max_gain })
 
-
+@allure.title("Test deduced commands")
 @pytest.mark.asyncio
 async def test_deduced_commands(remote_controller):
     info = remote_controller.device_info

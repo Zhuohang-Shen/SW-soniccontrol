@@ -8,6 +8,7 @@ from soniccontrol.communication.connection import CLIConnection, SerialConnectio
 from soniccontrol.remote_controller_v2 import RemoteController
 from tests.integration_tests.conftest import Profile
 import os
+import shutil
 from pathlib import Path
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -41,11 +42,12 @@ async def remote_controller(request):
     # teardown
     await controller.disconnect()
 
-    data_dir_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "output"
+    data_dir_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]).expanduser() / "../output/data"
+    data_dir_path = data_dir_path.resolve()
     if profile == Profile.simulation_worker:
-        os.rmdir(data_dir_path / "test_worker")
+        shutil.rmtree(data_dir_path / "test_worker")
     elif profile == Profile.simulation_descale:
-        os.rmdir(data_dir_path / "test_descale")
+        shutil.rmtree(data_dir_path / "test_descale")
 
 
 def format_command(command_fmt_str: str, *args, consts: DeviceParamConstants | None = None):    

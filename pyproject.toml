@@ -73,7 +73,7 @@ testpaths = ["tests"]
 addopts = [
     "--cov=soniccontrol", 
     "--import-mode=importlib",
-    "--alluredir=./output/allure"
+    "--alluredir=./output/allure-results"
 ]
 
 # linter and testing tools
