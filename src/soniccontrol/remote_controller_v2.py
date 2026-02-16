@@ -37,7 +37,8 @@ class RemoteController:
     making it also more suitable to use together with fixtures
     """
 
-    def __init__(self, device: SonicDevice, logger: logging.Logger):
+    def __init__(self, connection: Connection, device: SonicDevice, logger: logging.Logger):
+        self._connection = connection
         self._device: SonicDevice = device
         self._logger = logger    
         self._updater: Updater = Updater(self._device)
@@ -67,7 +68,7 @@ class RemoteController:
                 lambda _: loop.run_until_complete(postman.disconnect())
             )
 
-        return RemoteController(device, logger)
+        return RemoteController(connection, device, logger)
 
     def is_connected(self) -> bool:
         return self._device.communicator.connection_opened.is_set()
@@ -137,6 +138,12 @@ class RemoteController:
     async def disconnect(self) -> None:
         await self._updater.stop()
         await self._device.disconnect()
+
+    async def reconnect(self) -> None:
+        if self._device.communicator.connection_opened.is_set():
+            return # device is still connected
+        
+        await self._device.communicator.open_communication(self._connection)
     
     @property
     def updater(self):
