@@ -10,6 +10,13 @@ from tests.integration_tests.conftest import Profile
 import os
 import shutil
 from pathlib import Path
+import psutil
+
+
+def kill_all_device_main():
+    for proc in psutil.process_iter(["name"]):
+        if proc.info["name"] == "device_main":
+            proc.kill()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -19,8 +26,10 @@ async def remote_controller(request):
     profile: Profile = plugin_config.profile
     url: str = plugin_config.url
 
-
     simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
+
+    # ensure all device_main processes are killed. Needed because they need access to the same port.
+    kill_all_device_main()
 
     connection = None
     match profile:

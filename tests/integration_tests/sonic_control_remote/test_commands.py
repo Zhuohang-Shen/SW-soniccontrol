@@ -1,5 +1,5 @@
 import attrs
-from soniccontrol import DeviceParamConstantType, Answer, EFieldName, CommandCode
+from soniccontrol import DeviceParamConstantType, Answer, EFieldName, DeviceType, CommandCode
 from .asserts import assert_answer, assert_answer_is_not_error
 from tests.integration_tests.sonic_control_remote.conftest import format_command
 import pytest
@@ -128,6 +128,7 @@ async def test_if_invalid_syntax_throws_error(remote_controller, formatted_comma
 
 
 # TODO: use more consts
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("formatted_command_str", [
     ("!gain=100", []),
@@ -146,6 +147,7 @@ async def test_if_basic_setter_commands_work(remote_controller, formatted_comman
     assert answer.valid, "Answer was not valid"
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_if_freq_set_by_setter_can_be_retrieved_with_getter(remote_controller):
     consts = remote_controller.protocol_consts
@@ -166,23 +168,12 @@ async def test_if_freq_set_by_setter_can_be_retrieved_with_getter(remote_control
     answer = await remote_controller.send_command(format_command("?atf{}", consts.min_transducer_index))
     assert_answer(answer, {EFieldName.ATF: consts.max_frequency})
 
-"""
- !gain\=${MAX_GAIN}    ${True}
-    !gain\=${MIN_GAIN}    ${True}
-    !gain\=${${MAX_GAIN} + 1}    ${False}
-    !gain\=${${MIN_GAIN} - 1}    ${False}
-
-    ?atf${MAX_INDEX}    ${True}
-    ?atf${MIN_INDEX}    ${True}
-    ?atf${${MAX_INDEX} + 1}    ${False}
-    ?atf${${MIN_INDEX} - 1}    ${False}
-"""
 @pytest.mark.asyncio
 @pytest.mark.parametrize("command_str, const, is_upper_bound", [
     ("!gain={}", DeviceParamConstantType.MAX_GAIN, True),
     ("!gain={}", DeviceParamConstantType.MIN_GAIN, False),
-    ("?atf{}", DeviceParamConstantType.MAX_TRANSDUCER_INDEX, True),
-    ("?atf{}", DeviceParamConstantType.MIN_TRANSDUCER_INDEX, False),
+    pytest.param("?atf{}", DeviceParamConstantType.MAX_TRANSDUCER_INDEX, True, marks=pytest.mark.allowed_devices(DeviceType.MVP_WORKER)),
+    pytest.param("?atf{}", DeviceParamConstantType.MIN_TRANSDUCER_INDEX, False, marks=pytest.mark.allowed_devices(DeviceType.MVP_WORKER)),
 ])
 async def test_limits_of_parameter(remote_controller, command_str, const, is_upper_bound):
     const_value = getattr(remote_controller.protocol_consts, const.value)
@@ -193,3 +184,17 @@ async def test_limits_of_parameter(remote_controller, command_str, const, is_upp
     invalid_command = command_str.format(const_value + (+1 if is_upper_bound else -1))
     answer = await remote_controller.send_command(invalid_command)
     assert not answer.valid, "Answer should be not valid, because param is expected to be out of bounds"
+
+
+@pytest.mark.allowed_devices(DeviceType.DESCALE)
+@pytest.mark.asyncio
+async def test_if_swf_set_by_setter_can_be_retrieved_with_getter(remote_controller):
+    consts = remote_controller.protocol_consts
+
+    await remote_controller.send_command(format_command("!swf={}", consts.min_swf))
+    answer = await remote_controller.send_command("?swf")
+    assert_answer(answer, {EFieldName.SWF: consts.min_swf})
+
+    await remote_controller.send_command(format_command("!swf={}", consts.max_swf))
+    answer = await remote_controller.send_command("?swf")
+    assert_answer(answer, {EFieldName.SWF: consts.max_swf})

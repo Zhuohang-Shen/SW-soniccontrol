@@ -35,6 +35,11 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "allowed_devices(*device_list): mark test to run only for certain selected devices",
+    )
+
     profile = Profile[config.getoption("--profile")]
     url = config.getoption("--url")
     device = None
@@ -54,7 +59,7 @@ def pytest_runtest_setup(item):
     allowed_devices: List[DeviceType] = [ 
         arg 
         for mark in item.iter_markers(name="allowed_devices") 
-        for arg in mark.args[0]
+        for arg in mark.args
     ]
     if len(allowed_devices) == 0:
         return 
