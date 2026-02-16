@@ -88,8 +88,8 @@ class RemoteController:
         if self._updater.running:
             await self._updater.stop()
 
-    async def send_command(self, command: str | Command) -> Answer:
-        return await self._device.execute_command(command, raise_exception=False)
+    async def send_command(self, command: str | Command, raise_exception: bool = False) -> Answer:
+        return await self._device.execute_command(command, raise_exception=raise_exception)
     
     async def get_update(self) -> Answer:
         return await self._device.get_update()

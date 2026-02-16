@@ -2,6 +2,8 @@ from typing import Any, Dict, List
 from pytest_check.context_manager import check
 from sonic_protocol.command_codes import CommandCode
 from soniccontrol import Answer, EFieldName
+from soniccontrol import Command
+from soniccontrol.remote_controller_v2 import RemoteController
 
 
 def assert_answer(answer: Answer, expected_fields: Dict[EFieldName, Any], should_be_valid: bool = True):
@@ -22,3 +24,14 @@ def assert_answer_is_not_error(answer: Answer, errors_to_check: List[CommandCode
             assert answer.is_error_msg, "Answer is an error"
     else:
         assert answer.valid, "answer is not valid and not an error"
+
+
+async def send_command_and_check_response(controller: RemoteController, command: str | Command) -> Answer:
+    answer = await controller.send_command(command)
+    assert_answer_is_not_error(answer, errors_to_check=[
+        CommandCode.E_INTERNAL_DEVICE_ERROR, 
+        CommandCode.E_COMMAND_NOT_KNOWN, 
+        CommandCode.E_PARSING_ERROR, 
+        CommandCode.E_SYNTAX_ERROR
+    ])
+    return answer

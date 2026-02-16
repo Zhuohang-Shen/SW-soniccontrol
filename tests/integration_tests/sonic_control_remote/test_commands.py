@@ -1,16 +1,13 @@
-from typing import List
-
 import attrs
 from soniccontrol import DeviceParamConstantType, Answer, EFieldName, CommandCode
 from .asserts import assert_answer, assert_answer_is_not_error
 from tests.integration_tests.sonic_control_remote.conftest import format_command
 import pytest
-from pytest_check.context_manager import check
 from sonic_robot.deduce_command_examples import deduce_command_examples
 import allure
 import json
 from allure_commons.lifecycle import AllureLifecycle 
-from allure_commons.model2 import Status, StatusDetails, TestStepResult
+from allure_commons.model2 import Status, StatusDetails
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("formatted_command_str", [
