@@ -112,3 +112,87 @@ async def test_deduced_commands(remote_controller):
         attachment_type=allure.attachment_type.JSON
     )
     assert len(errors) == 0, "Errors occurred"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("formatted_command_str", [
+    ("!gain=-1000", []),
+    ("!gain=", []),
+    ("!gain{}", [DeviceParamConstantType.MIN_TRANSDUCER_INDEX]),
+    ("!gain", []),
+    ("!gain=asdf", []),
+    ("?gain={}", [DeviceParamConstantType.MIN_GAIN]),
+    ("?gain{}", [DeviceParamConstantType.MIN_TRANSDUCER_INDEX]),
+    ("?gainappendedtext", []),
+], indirect=True)
+async def test_if_invalid_syntax_throws_error(remote_controller, formatted_command_str):
+    answer = await remote_controller.send_command(formatted_command_str)
+    assert not answer.valid, "Answer should be not valid"
+
+
+# TODO: use more consts
+@pytest.mark.asyncio
+@pytest.mark.parametrize("formatted_command_str", [
+    ("!gain=100", []),
+    ("!frequency={}", [DeviceParamConstantType.MIN_FREQUENCY]),
+    ("!att4=0", []),
+    ("!atk1=100", []),
+    ("!atf2={}", [DeviceParamConstantType.MIN_FREQUENCY]),
+    ("!wipe_f_step={}", [DeviceParamConstantType.MIN_FREQUENCY]),
+    ("!wipe_t_on=100", []),
+    ("!scan_f_step=1000", []),
+    ("!ramp_f_start={}", [DeviceParamConstantType.MIN_FREQUENCY]),
+    ("!tune_f_step=1000", []),
+], indirect=True)
+async def test_if_basic_setter_commands_work(remote_controller, formatted_command_str):
+    answer = await remote_controller.send_command(formatted_command_str)
+    assert answer.valid, "Answer was not valid"
+
+
+@pytest.mark.asyncio
+async def test_if_freq_set_by_setter_can_be_retrieved_with_getter(remote_controller):
+    consts = remote_controller.protocol_consts
+
+    await remote_controller.send_command(format_command("!freq={}", consts.min_frequency))
+    answer = await remote_controller.send_command("?freq")
+    assert_answer(answer, {EFieldName.FREQUENCY: consts.min_frequency})
+
+    await remote_controller.send_command(format_command("!freq={}", consts.max_frequency))
+    answer = await remote_controller.send_command("?freq")
+    assert_answer(answer, {EFieldName.FREQUENCY: consts.max_frequency})
+
+    await remote_controller.send_command(format_command("!atf{}={}", consts.min_transducer_index, consts.min_frequency))
+    answer = await remote_controller.send_command(format_command("?atf{}", consts.min_transducer_index))
+    assert_answer(answer, {EFieldName.ATF: consts.min_frequency})
+
+    await remote_controller.send_command(format_command("!atf{}={}", consts.min_transducer_index, consts.max_frequency))
+    answer = await remote_controller.send_command(format_command("?atf{}", consts.min_transducer_index))
+    assert_answer(answer, {EFieldName.ATF: consts.max_frequency})
+
+"""
+ !gain\=${MAX_GAIN}    ${True}
+    !gain\=${MIN_GAIN}    ${True}
+    !gain\=${${MAX_GAIN} + 1}    ${False}
+    !gain\=${${MIN_GAIN} - 1}    ${False}
+
+    ?atf${MAX_INDEX}    ${True}
+    ?atf${MIN_INDEX}    ${True}
+    ?atf${${MAX_INDEX} + 1}    ${False}
+    ?atf${${MIN_INDEX} - 1}    ${False}
+"""
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command_str, const, is_upper_bound", [
+    ("!gain={}", DeviceParamConstantType.MAX_GAIN, True),
+    ("!gain={}", DeviceParamConstantType.MIN_GAIN, False),
+    ("?atf{}", DeviceParamConstantType.MAX_TRANSDUCER_INDEX, True),
+    ("?atf{}", DeviceParamConstantType.MIN_TRANSDUCER_INDEX, False),
+])
+async def test_limits_of_parameter(remote_controller, command_str, const, is_upper_bound):
+    const_value = getattr(remote_controller.protocol_consts, const.value)
+    valid_command = command_str.format(const_value)
+    answer = await remote_controller.send_command(valid_command)
+    assert answer.valid, "Answer should be valid, because the param is in the bounds"
+
+    invalid_command = command_str.format(const_value + (+1 if is_upper_bound else -1))
+    answer = await remote_controller.send_command(invalid_command)
+    assert not answer.valid, "Answer should be not valid, because param is expected to be out of bounds"

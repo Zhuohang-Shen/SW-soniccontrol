@@ -51,6 +51,9 @@ async def remote_controller(request):
 
 
 def format_command(command_fmt_str: str, *args, consts: DeviceParamConstants | None = None):    
+    if args is None:
+        return command_fmt_str
+    
     if len(args) == 0:
         return command_fmt_str
     
