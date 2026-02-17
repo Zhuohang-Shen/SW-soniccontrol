@@ -45,11 +45,12 @@ def connection_window(request, event_loop):
 
 
 @pytest_asyncio.fixture(scope="module", autouse=True)
-async def device_window(request, connection_window, tmp_path):
+async def device_window(request, connection_window, tmp_path_factory):
     controller = GuiController()    
 
     profile: Profile = request.config._sonic_control_plugin.profile
     url: str = request.config._sonic_control_plugin.url
+    data_dir = tmp_path_factory.mktemp("data")
 
     if profile == Profile.device_descale or profile == Profile.device_worker:
         controller.set_widget_text(widget_names.CONNECTION_PORTS_COMBOBOX, url)
@@ -61,12 +62,12 @@ async def device_window(request, connection_window, tmp_path):
         if profile == Profile.simulation_descale:
             controller.set_widget_text(
                 widget_names.CONNECTION_SIMULATION_CMD_ARGS, 
-                f"--name=test_descale --profile=descale --data-dir=\"{tmp_path}\""
+                f"--name=test_descale --profile=descale --data-dir=\"{data_dir}\""
             )
         elif profile == Profile.simulation_worker:
             controller.set_widget_text(
                 widget_names.CONNECTION_SIMULATION_CMD_ARGS, 
-                f"--name=test_worker --profile=worker --data-dir=\"{tmp_path}\""
+                f"--name=test_worker --profile=worker --data-dir=\"{data_dir}\""
             )
         else:
             raise NotImplementedError(f"For the {profile} no case is implemented")
@@ -77,3 +78,10 @@ async def device_window(request, connection_window, tmp_path):
         connection_window._on_connect_to_simulation()
     await connection_window.wait_until_connected()
     connection_window._view.update() # handle all events from tkinter. Ensure everything is loaded
+
+
+@pytest.fixture(scope="function", autouse=True)
+def widget_registry_flags(device_window):
+    WidgetRegistry._poll_updates()
+
+    WidgetRegistry.clear_text_changed_flags()

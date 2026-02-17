@@ -68,9 +68,6 @@ class CLIConnection(Connection):
                 proc.kill()
 
     async def open_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        # ensure that on program exit the clean up is called. Else the process gets not terminated sometimes
-        atexit.register(lambda: asyncio.get_event_loop().run_until_complete(self.close_connection()))
-        
         expanded_bin_file = Path(self.bin_file).expanduser()
         process_name = expanded_bin_file.name
         self._kill_all(process_name) # FIXME: could be problematic together with postman and worker simulation 

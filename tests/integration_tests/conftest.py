@@ -19,6 +19,7 @@ class SonicControlPlugin:
     url: str | None = attrs.field()
     device_type: DeviceType = attrs.field()
     simulation_exe_path: Path = attrs.field()
+    log_path: Path = attrs.field()
 
 
 def pytest_addoption(parser):
@@ -35,6 +36,12 @@ def pytest_addoption(parser):
         default=None,
         help="Choose the url for the serial port over that the device is connected",
     )
+    parser.addoption(
+        "--log-path",
+        action="store",
+        default=Path("./output/test_logs"),
+        help="Choose the directory, where the logs should be placed",
+    )
 
 
 def pytest_configure(config):
@@ -45,6 +52,7 @@ def pytest_configure(config):
 
     profile = Profile[config.getoption("--profile")]
     url = config.getoption("--url")
+    log_path = config.getoption("--log-path")
   
     device = None
     match profile:
@@ -58,10 +66,11 @@ def pytest_configure(config):
     assert "FIRMWARE_BUILD_DIR_PATH" in os.environ, "FIRMWARE_BUILD_DIR_PATH was not set as environment variable"
     simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"] + "/linux/platform_linux/src/device/device_main")
   
-    config._sonic_control_plugin = SonicControlPlugin(profile, url, device, simulation_exe_path)
+    config._sonic_control_plugin = SonicControlPlugin(profile, url, device, simulation_exe_path, log_path)
 
 
 def pytest_runtest_setup(item):
+    # Here we check for each test, if it can be executed by checking the allowed_devices marker
     allowed_devices: List[DeviceType] = [ 
         arg 
         for mark in item.iter_markers(name="allowed_devices") 
