@@ -128,9 +128,8 @@ class WidgetRegistry:
         return ref.old_text_value
 
     @staticmethod
-    def set_up():
+    def set_up(loop = asyncio.get_event_loop()):
         WidgetRegistry._enabled = True
-        loop = asyncio.get_event_loop()
         WidgetRegistry._polling_task = loop.create_task(WidgetRegistry._polling_worker())
 
     @staticmethod

@@ -1,4 +1,6 @@
 from enum import Enum, auto
+import os
+from pathlib import Path
 from typing import List
 import attrs
 from sonic_protocol.schema import DeviceType
@@ -16,6 +18,7 @@ class SonicControlPlugin:
     profile: Profile = attrs.field()
     url: str | None = attrs.field()
     device_type: DeviceType = attrs.field()
+    simulation_exe_path: Path = attrs.field()
 
 
 def pytest_addoption(parser):
@@ -42,8 +45,8 @@ def pytest_configure(config):
 
     profile = Profile[config.getoption("--profile")]
     url = config.getoption("--url")
+  
     device = None
-
     match profile:
         case Profile.simulation_descale | Profile.device_descale:
             device = DeviceType.DESCALE
@@ -51,8 +54,11 @@ def pytest_configure(config):
             device = DeviceType.MVP_WORKER
         case _:
             raise NotImplementedError("This profile is not supported")
-
-    config._sonic_control_plugin = SonicControlPlugin(profile, url, device)
+    
+    assert "FIRMWARE_BUILD_DIR_PATH" in os.environ, "FIRMWARE_BUILD_DIR_PATH was not set as environment variable"
+    simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"] + "/linux/platform_linux/src/device/device_main")
+  
+    config._sonic_control_plugin = SonicControlPlugin(profile, url, device, simulation_exe_path)
 
 
 def pytest_runtest_setup(item):
