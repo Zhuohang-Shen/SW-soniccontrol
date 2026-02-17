@@ -1,7 +1,7 @@
 import attrs
 from soniccontrol import DeviceParamConstantType, Answer, EFieldName, DeviceType, CommandCode
 from .asserts import assert_answer, assert_answer_is_not_error
-from tests.integration_tests.sonic_control_remote.conftest import format_command
+from tests.integration_tests.test_remote.conftest import format_command
 import pytest
 from sonic_robot.deduce_command_examples import deduce_command_examples
 import allure

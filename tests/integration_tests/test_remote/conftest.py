@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def remote_controller(request):
+async def remote_controller(request, tmp_path):
     # setup
     plugin_config = request.config._sonic_control_plugin
     profile: Profile = plugin_config.profile
@@ -21,15 +21,13 @@ async def remote_controller(request):
 
     simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
 
-    # ensure all device_main processes are killed. Needed because they need access to the same port.
-
     connection = None
     match profile:
         case Profile.simulation_worker:
-            cmd_args = ["--profile=worker", "--name=test_worker"]
+            cmd_args = ["--profile=worker", "--name=test_worker", f"--data-dir={tmp_path}"]
             connection = CLIConnection(profile.name, simulation_exe_path, cmd_args=cmd_args)
         case Profile.simulation_descale:
-            cmd_args = ["--profile=descale", "--name=test_descale"]
+            cmd_args = ["--profile=descale", "--name=test_descale", f"--data-dir={tmp_path}"]
             connection = CLIConnection(profile.name, simulation_exe_path, cmd_args=cmd_args)
         case Profile.device_worker | Profile.device_descale:
             connection = SerialConnection(profile.name, url)
@@ -49,13 +47,6 @@ async def remote_controller(request):
 
     # teardown
     await controller.disconnect()
-
-    data_dir_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]).expanduser() / "../output/data"
-    data_dir_path = data_dir_path.resolve()
-    if profile == Profile.simulation_worker:
-        shutil.rmtree(data_dir_path / "test_worker")
-    elif profile == Profile.simulation_descale:
-        shutil.rmtree(data_dir_path / "test_descale")
 
 
 def format_command(command_fmt_str: str, *args, consts: DeviceParamConstants | None = None):    

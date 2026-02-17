@@ -136,8 +136,11 @@ class ConnectionWindow(UIComponent):
         
         async def _attempt_connection(_connection: Connection, is_legacy_device: bool = False):
             await self._device_window_manager.attempt_connection(_connection, is_legacy_device)
+            self._is_connecting = False
+            self._finished_connecting.set()
 
-        self._is_connecting = False # Make this to asyncio Event if needed
+        self._is_connecting = False
+        self._finished_connecting: asyncio.Event = asyncio.Event() 
         self._attempt_connection = decorator(_attempt_connection)
         self._device_window_manager.set_attempt_connection_callback(self._attempt_connection)
         
@@ -146,23 +149,17 @@ class ConnectionWindow(UIComponent):
         self._view.set_refresh_button_command(self._refresh_ports)
         self._refresh_ports()
 
-    @property
-    def is_connecting(self) -> bool:
-        return self._is_connecting
-    
-    @is_connecting.setter
-    def is_connecting(self, value: bool):
-        self._is_connecting = value
-        self._view.enable_connect_via_url_button(not value)
-        self._view.enable_connect_to_simulation_button(not value)
-
     def _refresh_ports(self):
         ports = [port.device for port in list_ports.comports()]
         self._view.set_ports(ports)
 
+    async def wait_until_connected(self):
+        await self._finished_connecting.wait()
+        self._finished_connecting.clear()
+
     @async_handler
     async def _on_connect_via_url(self):
-        assert (not self.is_connecting)
+        assert (not self._is_connecting)
         self._is_connecting = True
 
         url = self._view.get_url()
@@ -170,11 +167,10 @@ class ConnectionWindow(UIComponent):
 
         connection = SerialConnection(url=url, baudrate=baudrate, connection_name=Path(url).name)
         await self._attempt_connection(connection, self._view.is_legacy_device)
-        self._is_connecting = False
 
     @async_handler 
     async def _on_connect_to_simulation(self):
-        assert (not self.is_connecting)
+        assert (not self._is_connecting)
         assert self._simulation_exe_path is not None
         self._is_connecting = True
 
@@ -192,7 +188,6 @@ class ConnectionWindow(UIComponent):
 
         connection = CLIConnection(bin_file=bin_file, connection_name = "simulation", cmd_args=args)
         await self._attempt_connection(connection)
-        self._is_connecting = False
 
 
 class ConnectionWindowView(ttk.Window, View):
