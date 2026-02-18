@@ -2,7 +2,7 @@ from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import pytest
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="package")
 async def test_set_gain_over_serial_updates_status_bar():
     controller = GuiController()
     controller.switch_to_tab(widget_names.SERIAL_MONITOR_TAB)

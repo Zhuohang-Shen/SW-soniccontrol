@@ -15,19 +15,20 @@ from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 
 
-@pytest.fixture(scope="module")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+# NOTE: If you write a Test, it will automatically use the fixtures below, because they are autouse=True
+# Also their scope is package, so they are executed once for the whole folder.
+# They have an own event loop and you have to set loop_scope="package" on the Tests, 
+# in order to tell pytest_asyncio, that the same event loop should be used to run the tests.
 
 
-@pytest.fixture(scope="module")
-def connection_window(request, event_loop):
+@pytest_asyncio.fixture(scope="package")
+async def connection_window(request):
+    loop = asyncio.get_running_loop()
+
     simulation_exe_path: Path = request.config._sonic_control_plugin.simulation_exe_path
 
     ImageLoader.clear_resources()
-    WidgetRegistry.set_up(event_loop)
+    WidgetRegistry.set_up(loop)
     register_device_plugins()
 
     connection_window = ConnectionWindow(simulation_exe_path)
@@ -35,16 +36,16 @@ def connection_window(request, event_loop):
     if PLATFORM != System.WINDOWS:
         enable_high_dpi_awareness(connection_window.view)
     root = connection_window.view.winfo_toplevel()
-    event_loop.create_task(main_loop(connection_window.view)) # type: ignore
+    loop.create_task(main_loop(connection_window.view)) # type: ignore
 
     yield connection_window
 
     root.destroy()
-    event_loop.run_until_complete(WidgetRegistry.clean_up())
+    await WidgetRegistry.clean_up()
     ImageLoader.clear_resources()
 
 
-@pytest_asyncio.fixture(scope="module", autouse=True)
+@pytest_asyncio.fixture(scope="package", autouse=True)
 async def device_window(request, connection_window, tmp_path_factory):
     controller = GuiController()    
 
@@ -83,5 +84,4 @@ async def device_window(request, connection_window, tmp_path_factory):
 @pytest.fixture(scope="function", autouse=True)
 def widget_registry_flags(device_window):
     WidgetRegistry._poll_updates()
-
     WidgetRegistry.clear_text_changed_flags()
