@@ -60,3 +60,9 @@ class GuiController:
             root.update_idletasks()
             root.update()
             await asyncio.sleep(0)    
+
+    def clear_text_changed_flags(self):
+        WidgetRegistry.clear_text_changed_flags()
+
+    def clear_text_changed_flag_of_widget(self, widget_name: str):
+        WidgetRegistry.clear_widget_text_changed_flag(widget_name)

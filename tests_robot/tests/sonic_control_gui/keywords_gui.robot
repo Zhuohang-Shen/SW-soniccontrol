@@ -25,7 +25,7 @@ Close and clean up
 
 Connect via url "${URL}"
     IF  $URL is None
-        Fail    msg=No url was provieded
+        Fail    msg=No url was provided
     END
     Gui.Set text of widget "${CONNECTION_PORTS_COMBOBOX}" to "${URL}"
     Gui.Press button "${CONNECTION_CONNECT_VIA_URL_BUTTON}"

@@ -90,6 +90,11 @@ async def send_over_serial_monitor(command: str):
     await controller.execute_events_until_idle()
 
 
+async def proceed_without_experiment():
+    controller = GuiController()
+    await controller.wait_for_widget_to_be_registered(widget_names.MESSAGE_BOX, 0.2)
+    controller.press_button(widget_names.MESSAGE_BOX_OPTION_PROCEED)
+
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
 async def default_state(device_window):
     await send_over_serial_monitor("!freq=100000")

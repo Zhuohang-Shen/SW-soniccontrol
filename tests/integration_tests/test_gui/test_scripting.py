@@ -4,6 +4,7 @@ from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import pytest
 import pytest_asyncio
 from soniccontrol_gui.constants import ui_labels
+from tests.integration_tests.test_gui.conftest import proceed_without_experiment
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
 async def scripting_tab_fixture():
@@ -32,9 +33,8 @@ async def test_execute_script_holds_application():
     controller.press_button(widget_names.EDITOR_START_PAUSE_CONTINUE_BUTTON)
 
     # Message box appears if script is started without experiment
-    await controller.wait_for_widget_to_be_registered(widget_names.MESSAGE_BOX, 0.2)
-    controller.press_button(widget_names.MESSAGE_BOX_OPTION_PROCEED)
-
+    await proceed_without_experiment()
+    
     await asyncio.sleep(4)
     text_signal_after_4s = controller.get_widget_text(widget_names.STATUS_BAR_SIGNAL_LABEL)
     await asyncio.sleep(2)
