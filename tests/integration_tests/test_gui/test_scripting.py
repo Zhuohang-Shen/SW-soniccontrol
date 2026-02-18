@@ -4,7 +4,7 @@ from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import pytest
 import pytest_asyncio
 from soniccontrol_gui.constants import ui_labels
-from tests.integration_tests.test_gui.conftest import proceed_without_experiment
+from soniccontrol_gui.utils.testing.workflows import proceed_without_experiment
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
 async def scripting_tab_fixture():

@@ -4,7 +4,7 @@ from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import asyncio
 import pytest_asyncio
 from soniccontrol_gui.constants import ui_labels
-from tests.integration_tests.test_gui.conftest import proceed_without_experiment
+from soniccontrol_gui.utils.testing.workflows import proceed_without_experiment, start_ramp_procedure
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
 async def procedure_tab_fixture():
@@ -22,26 +22,6 @@ async def procedure_tab_fixture():
     controller.set_widget_text(widget_names.PROC_CONTROLLING_PROCEDURE_COMBOBOX, "Ramp")
     await controller.execute_events_until_idle()
     controller.clear_text_changed_flags()
-
-
-
-async def start_ramp_procedure():
-    controller = GuiController()
-    controller.set_widget_text(widget_names.PROC_CONTROLLING_PROCEDURE_COMBOBOX, "Ramp")
-    controller.set_widget_text(widget_names.RAMP_F_START, "100000")
-    controller.set_widget_text(widget_names.RAMP_F_STOP, "200000")
-    controller.set_widget_text(widget_names.RAMP_F_STEP, "10000")
-    controller.set_widget_text(widget_names.RAMP_T_ON_TIME, "1000")
-    controller.set_widget_text(widget_names.RAMP_T_ON_UNIT, "ms")
-    controller.set_widget_text(widget_names.RAMP_T_OFF_TIME, "1000")
-    controller.set_widget_text(widget_names.RAMP_T_OFF_UNIT, "ms")
-    controller.set_widget_text(widget_names.RAMP_GAIN, "100")
-
-    controller.press_button(widget_names.PROC_CONTROLLING_START_BUTTON)
-    await controller.execute_events_until_idle()
-    await proceed_without_experiment()
-
-    await controller.wait_for_widget_to_change_text(widget_names.PROC_CONTROLLING_RUNNING_PROC_LABEL, 10.0)
 
 
 

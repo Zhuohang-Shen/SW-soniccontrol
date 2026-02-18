@@ -2,7 +2,7 @@ from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import pytest
 
-from tests.integration_tests.test_gui.conftest import send_over_serial_monitor
+from soniccontrol_gui.utils.testing.workflows import send_over_serial_monitor
 
 
 @pytest.mark.asyncio(loop_scope="package")

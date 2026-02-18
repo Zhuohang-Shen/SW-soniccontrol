@@ -1,5 +1,6 @@
 import asyncio
 import tkinter as tk
+from typing import List
 import ttkbootstrap as ttk
 
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry, get_text_of_widget, set_text_of_widget
@@ -17,6 +18,13 @@ class GuiController:
     async def wait_for_widget_to_change_text(self, widget_name: str, timeout_s: float | None = None):
         return await asyncio.wait_for(WidgetRegistry.wait_for_widget_to_change_text(widget_name), timeout_s)
     
+    async def wait_for_multiple_widgets_to_change_text(self, *widget_names: str, timeout_s: float | None = None) -> List[str]:
+        coroutines = [ 
+            asyncio.wait_for(WidgetRegistry.wait_for_widget_to_change_text(widget_name), timeout_s) 
+            for widget_name in widget_names
+        ]
+        return await asyncio.gather(*coroutines)
+
     def get_widget_text(self, widget_name: str) -> str:
         widget = WidgetRegistry.get_widget(widget_name)
         return get_text_of_widget(widget)

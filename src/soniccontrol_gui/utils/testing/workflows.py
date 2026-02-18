@@ -1,0 +1,101 @@
+from soniccontrol_gui.utils.testing import widget_names
+from soniccontrol_gui.utils.testing.gui_controller import GuiController
+
+
+async def send_over_serial_monitor(command: str):
+    controller = GuiController()
+    controller.switch_to_tab(widget_names.SERIAL_MONITOR_TAB)
+    controller.set_widget_text(widget_names.SERIAL_MONITOR_COMMAND_LINE_INPUT_ENTRY, command)
+    controller.press_button(widget_names.SERIAL_MONITOR_SEND_BUTTON)
+    await controller.execute_events_until_idle()
+
+
+async def proceed_without_experiment():
+    controller = GuiController()
+    await controller.wait_for_widget_to_be_registered(widget_names.MESSAGE_BOX, 0.2)
+    controller.press_button(widget_names.MESSAGE_BOX_OPTION_PROCEED)
+
+
+def set_ramp_args():
+    controller = GuiController()
+    controller.set_widget_text(widget_names.RAMP_F_START, "100000")
+    controller.set_widget_text(widget_names.RAMP_F_STOP, "200000")
+    controller.set_widget_text(widget_names.RAMP_F_STEP, "10000")
+    controller.set_widget_text(widget_names.RAMP_T_ON_TIME, "1000")
+    controller.set_widget_text(widget_names.RAMP_T_ON_UNIT, "ms")
+    controller.set_widget_text(widget_names.RAMP_T_OFF_TIME, "1000")
+    controller.set_widget_text(widget_names.RAMP_T_OFF_UNIT, "ms")
+    controller.set_widget_text(widget_names.RAMP_GAIN, "100")
+
+
+def set_spectrum_measure_args():
+    controller = GuiController()
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_GAIN, "50")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_F_START, "100000")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_F_STOP, "105000")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_F_STEP, "1000")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_ON_TIME, "250")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_ON_UNIT, "ms")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_OFF_TIME, "250")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_OFF_UNIT, "ms")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_OFFSET_TIME, "500")
+    controller.set_widget_text(widget_names.SPECTRUM_MEASURE_T_OFFSET_UNIT, "ms")
+
+
+def fill_out_experiment_data():
+    pass # TODO
+
+
+async def start_ramp_procedure():
+    set_ramp_args()
+
+    controller = GuiController()
+    controller.press_button(widget_names.PROC_CONTROLLING_START_BUTTON)
+    await controller.execute_events_until_idle()
+    await proceed_without_experiment()
+
+    await controller.wait_for_widget_to_change_text(widget_names.PROC_CONTROLLING_RUNNING_PROC_LABEL, 10.0)
+
+
+async def start_ramp_capture():
+    controller = GuiController()
+    controller.switch_to_tab(widget_names.MEASURING_TAB)
+    controller.switch_to_tab(widget_names.PROCEDURES_TAB)
+
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    fill_out_experiment_data()
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.set_widget_text(widget_names.MEASURING_TARGET_COMBOBOX, "Procedure")
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+
+    set_ramp_args()
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+
+    proc_label, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
+        widget_names.STATUS_BAR_PROCEDURE_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
+        timeout_s=10.0
+    )
+    assert "ramp" in proc_label
+    assert label_control_button == "${LABEL_END_CAPTURE}"
+
+
+async def start_spectrum_measure_capture():
+    controller = GuiController()
+    controller.switch_to_tab(widget_names.MEASURING_TAB)
+    controller.switch_to_tab(widget_names.SPECTRUM_MEASURE_TAB)
+
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    fill_out_experiment_data()
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.set_widget_text(widget_names.MEASURING_TARGET_COMBOBOX, "Spectrum Measure")
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+
+    set_spectrum_measure_args()
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+
+    _, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
+        widget_names.STATUS_BAR_FREQ_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
+        timeout_s=10.0
+    )
+
+    assert label_control_button == "${LABEL_END_CAPTURE}"
