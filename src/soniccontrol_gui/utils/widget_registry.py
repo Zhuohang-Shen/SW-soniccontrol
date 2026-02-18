@@ -72,6 +72,7 @@ You have to enable the registry with @ref WidgetRegistry.set_up,
 before you register widgets.
 """
 class WidgetRegistry:
+    root: tk.Tk | None = None
     _widget_registry: Dict[str, WidgetReference] = {}
     _widget_registration_events: Dict[str, asyncio.Event] = {} # for waiting until a widget got registered
     _enabled = False

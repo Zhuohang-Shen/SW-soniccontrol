@@ -51,4 +51,12 @@ class GuiController:
         widget = WidgetRegistry.get_widget(widget_name)
         assert isinstance(widget, tk.Widget), "widget has to be an instance or subclass of tk.Widget"
         child = widget.winfo_children()[index_child]
-        return get_text_of_widget(child)     
+        return get_text_of_widget(child) 
+
+    async def execute_events_until_idle(self, max_iter=10):
+        root = WidgetRegistry.root
+        assert root is not None, "root was not set on WidgetRegistry"
+        for _ in range(max_iter):
+            root.update_idletasks()
+            root.update()
+            await asyncio.sleep(0)    
