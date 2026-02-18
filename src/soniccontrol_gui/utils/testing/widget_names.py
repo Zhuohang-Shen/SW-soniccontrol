@@ -131,6 +131,5 @@ MEASURING_CONTROL_BUTTON = 'measuring.control_button'
 # Message Box constants
 MESSAGE_BOX = "MessageBox"
 MESSAGE_BOX_MSG = "MessageBox.message"
-for option in DialogOptions:
-    globals()[f"MESSAGE_BOX_OPTION_{option.name}"] = f"MessageBox.{option.name}"
+MESSAGE_BOX_OPTION_PROCEED = "MessageBox.PROCEED"
 

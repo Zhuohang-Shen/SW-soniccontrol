@@ -82,7 +82,17 @@ async def device_window(request, connection_window, tmp_path_factory):
     connection_window._view.update() # handle all events from tkinter. Ensure everything is loaded
 
 
-@pytest.fixture(scope="function", autouse=True)
-def widget_registry_flags(device_window):
-    WidgetRegistry._poll_updates()
+async def send_over_serial_monitor(command: str):
+    controller = GuiController()
+    controller.switch_to_tab(widget_names.SERIAL_MONITOR_TAB)
+    controller.set_widget_text(widget_names.SERIAL_MONITOR_COMMAND_LINE_INPUT_ENTRY, command)
+    controller.press_button(widget_names.SERIAL_MONITOR_SEND_BUTTON)
+    await controller.execute_events_until_idle()
+
+
+@pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
+async def default_state(device_window):
+    await send_over_serial_monitor("!freq=100000")
+    await send_over_serial_monitor("!gain=100")
+    await send_over_serial_monitor("!OFF")
     WidgetRegistry.clear_text_changed_flags()
