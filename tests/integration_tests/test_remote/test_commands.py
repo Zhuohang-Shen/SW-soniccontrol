@@ -3,7 +3,7 @@ from soniccontrol import DeviceParamConstantType, Answer, EFieldName, DeviceType
 from .asserts import assert_answer, assert_answer_is_not_error
 from tests.integration_tests.test_remote.conftest import format_command
 import pytest
-from sonic_robot.deduce_command_examples import deduce_command_examples
+from tests.integration_tests.test_remote.deduce_command_examples import deduce_command_examples
 import allure
 import json
 from allure_commons.lifecycle import AllureLifecycle 

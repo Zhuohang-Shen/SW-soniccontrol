@@ -62,11 +62,12 @@ class WidgetReference:
         self.text_has_changed = asyncio.Event()
 
 """!
-@brief Registry solely used for robot testing library
+@brief Registry solely used for integration testing via GuiController
 
 The widgets are available in a static directory of this class. 
 This would be bad practice for normal code, because we have global state.
-However for our robot testing library it is necessary, so that we can access the widgets easily.
+However for our testing library it is necessary, so that we can access the widgets easily.
+This also mimics also the user experience, as an user sees all the widgets at once
 
 You have to enable the registry with @ref WidgetRegistry.set_up, 
 before you register widgets.

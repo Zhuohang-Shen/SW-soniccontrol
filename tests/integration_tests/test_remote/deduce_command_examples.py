@@ -5,7 +5,7 @@ from sonic_protocol.schema import CommandParamDef, DeviceParamConstantType, Devi
 from sonic_protocol.protocol import protocol_list as operator_protocol_factory
 from soniccontrol_gui.plugins.device_plugin import DevicePluginRegistry, register_device_plugins
 
-# TODO: we could from max and min values also deduce commands that should fail
+
 def deduce_param_limits(consts: DeviceParamConstants, param_def: CommandParamDef | None) -> List[str]:
     if param_def is None:
         return []
