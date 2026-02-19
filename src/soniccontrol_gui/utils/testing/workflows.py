@@ -1,6 +1,6 @@
 from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
-
+from soniccontrol_gui.constants import ui_labels
 
 async def send_over_serial_monitor(command: str):
     controller = GuiController()
@@ -43,7 +43,14 @@ def set_spectrum_measure_args():
 
 
 def fill_out_experiment_data():
-    pass # TODO
+    controller = GuiController()
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_EXPERIMENT_NAME, "some experiment")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_TRANSDUCER_ID, "transducer007")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_MEDIUM, "water")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_ADD_ON_ID, "none")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_AUTHORS, "J. R. R. Tolkien")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_CONNECTOR_TYPE, "love")
+    controller.set_widget_text(widget_names.EXPERIMENT_DATA_DESCRIPTION, "We are doing some serious sketchy stuff here")
 
 
 async def start_ramp_procedure():
@@ -70,13 +77,14 @@ async def start_ramp_capture():
 
     set_ramp_args()
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.clear_text_changed_flag_of_widget(widget_names.MEASURING_CONTROL_BUTTON)
 
     proc_label, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
         widget_names.STATUS_BAR_PROCEDURE_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
         timeout_s=10.0
     )
     assert "ramp" in proc_label
-    assert label_control_button == "${LABEL_END_CAPTURE}"
+    assert label_control_button == ui_labels.END_CAPTURE
 
 
 async def start_spectrum_measure_capture():
@@ -92,10 +100,11 @@ async def start_spectrum_measure_capture():
 
     set_spectrum_measure_args()
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.clear_text_changed_flag_of_widget(widget_names.MEASURING_CONTROL_BUTTON)
 
     _, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
         widget_names.STATUS_BAR_FREQ_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
         timeout_s=10.0
     )
 
-    assert label_control_button == "${LABEL_END_CAPTURE}"
+    assert label_control_button == ui_labels.END_CAPTURE

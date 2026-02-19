@@ -4,7 +4,7 @@ from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 from soniccontrol_gui.constants import ui_labels
 import pytest_asyncio
-from soniccontrol_gui.utils.testing.workflows import send_over_serial_monitor, start_ramp_capture, start_spectrum_measure_capture
+from soniccontrol_gui.utils.testing.workflows import fill_out_experiment_data, send_over_serial_monitor, start_ramp_capture, start_spectrum_measure_capture
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
@@ -27,6 +27,7 @@ async def test_experiment_control_button():
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
     await controller.execute_events_until_idle()
 
+    fill_out_experiment_data()
     label_control_button = controller.get_widget_text(widget_names.MEASURING_CONTROL_BUTTON)
     assert label_control_button == ui_labels.FINISH_LABEL
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
