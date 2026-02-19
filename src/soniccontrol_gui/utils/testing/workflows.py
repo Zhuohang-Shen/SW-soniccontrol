@@ -1,13 +1,26 @@
+import asyncio
 from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 from soniccontrol_gui.constants import ui_labels
 
-async def send_over_serial_monitor(command: str):
+async def send_over_serial_monitor(command: str) -> str:
     controller = GuiController()
     controller.switch_to_tab(widget_names.SERIAL_MONITOR_TAB)
     controller.set_widget_text(widget_names.SERIAL_MONITOR_COMMAND_LINE_INPUT_ENTRY, command)
     controller.press_button(widget_names.SERIAL_MONITOR_SEND_BUTTON)
     await controller.execute_events_until_idle()
+
+    max_iter = 10
+    for _ in range(max_iter):
+        answer = controller.get_text_of_widget_child(widget_names.SERIAL_MONITOR_SCROLL_FRAME, -1)
+        if not answer.startswith(">>>"):
+            # commands are always proceeded with '>>>', answers never
+            return answer
+        
+        await controller.execute_events_until_idle()
+        await asyncio.sleep(0.1)
+    
+    raise AssertionError("No answer could be received")
 
 
 async def proceed_without_experiment():
