@@ -3,7 +3,7 @@ import pytest_asyncio
 
 from sonic_protocol.schema import Loglevel, Signal
 from .asserts import assert_answer, send_command_and_check_response
-from soniccontrol import EFieldName, Procedure, commands, Procedure
+from soniccontrol import EFieldName, Procedure, commands, Procedure, DeviceType
 import asyncio
 
 
@@ -29,6 +29,7 @@ async def disable_procedure_logger(remote_controller):
     await remote_controller.send_command(commands.SetLogLevel("procedureLogger", Loglevel.ERROR))
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_procedure_returns_error_if_f_start_and_f_stop_are_the_same(remote_controller):
     val = 100100
@@ -39,6 +40,7 @@ async def test_procedure_returns_error_if_f_start_and_f_stop_are_the_same(remote
     assert not answer.valid, "Expected answer to be false, because f_start and f_stop are the same"
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_setter_commands_get_blocked_during_procedure_run(remote_controller):
     answer = await remote_controller.send_command(commands.SetRamp())
@@ -48,6 +50,7 @@ async def test_setter_commands_get_blocked_during_procedure_run(remote_controlle
     assert not answer.valid, "Expected set_freq to fail, while a procedure is running"
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_getter_commands_are_allowed_during_procedure_run(remote_controller):
     answer = await remote_controller.send_command(commands.SetRamp())
@@ -57,6 +60,7 @@ async def test_getter_commands_are_allowed_during_procedure_run(remote_controlle
     assert answer.valid, "Expected get_freq to succeed, while a procedure is running"
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_stop_turns_off_procedure(remote_controller, disable_procedure_logger):
     await send_command_and_check_response(remote_controller, commands.SetRamp())
@@ -65,6 +69,8 @@ async def test_stop_turns_off_procedure(remote_controller, disable_procedure_log
     await send_command_and_check_response(remote_controller, commands.SetStop())
     assert_answer(await remote_controller.send_command(commands.GetUpdate()), {EFieldName.PROCEDURE: Procedure.NO_PROC})
 
+
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio
 async def test_if_ramp_resets_running_proc_and_signal(remote_controller, disable_procedure_logger):
     await send_command_and_check_response(remote_controller, commands.SetRamp())

@@ -5,6 +5,7 @@ from soniccontrol_gui.utils.testing.gui_controller import GuiController
 from soniccontrol_gui.constants import ui_labels
 from soniccontrol_gui.utils.testing.workflows import send_over_serial_monitor
 import pytest_asyncio
+from soniccontrol import DeviceType
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
@@ -26,6 +27,7 @@ async def configuration_tab_fixture():
     controller.clear_text_changed_flags()
 
 
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
 @pytest.mark.asyncio(loop_scope="package")
 async def test_send_atf_configs_to_device():
     controller = GuiController()
