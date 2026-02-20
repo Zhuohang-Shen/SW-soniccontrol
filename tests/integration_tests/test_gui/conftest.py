@@ -33,18 +33,25 @@ async def connection_window(request):
     register_device_plugins()
 
     connection_window = ConnectionWindow(simulation_exe_path)
-    WidgetRegistry.root = connection_window.view.root # type: ignore
+    root = connection_window.view.root 
+    WidgetRegistry.root = root
 
     if PLATFORM != System.WINDOWS:
         enable_high_dpi_awareness(connection_window.view)
-    root = connection_window.view.winfo_toplevel()
-    loop.create_task(main_loop(connection_window.view)) # type: ignore
+
+    tk_task = loop.create_task(main_loop(connection_window.view)) # type: ignore
 
     yield connection_window
 
+    tk_task.cancel()
+    await tk_task
+
+    root.update_idletasks()
     root.destroy()
+    
     await WidgetRegistry.clean_up()
     ImageLoader.clear_resources()
+
 
 
 create_worker_process = pytest_asyncio.fixture(create_worker_process_impl, scope="package")
@@ -60,10 +67,7 @@ async def device_window(request, connection_window, tmp_path_factory, create_wor
 
     if not is_simulation:
         controller.set_widget_text(widget_names.CONNECTION_PORTS_COMBOBOX, url)
-        # calling this method directly here ensures 
-        # that the whole device window gets loaded, 
-        # before continuing 
-        connection_window._on_connect_via_url() 
+        controller.press_button(widget_names.CONNECTION_CONNECT_VIA_URL_BUTTON)
     else:
         if device_type == DeviceType.DESCALE:
             controller.set_widget_text(
@@ -83,10 +87,7 @@ async def device_window(request, connection_window, tmp_path_factory, create_wor
         else:
             raise NotImplementedError(f"For the {device_type} no case is implemented")
 
-        # calling this method directly here ensures 
-        # that the whole device window gets loaded, 
-        # before continuing 
-        connection_window._on_connect_to_simulation()
+        controller.press_button(widget_names.CONNECTION_CONNECT_TO_SIMULATION_BUTTON)
     await connection_window.wait_until_connected()
 
     # handle all events from tkinter. Ensure everything is loaded

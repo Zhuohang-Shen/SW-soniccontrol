@@ -76,8 +76,9 @@ def pytest_configure(config):
     ]
 
     assert "FIRMWARE_BUILD_DIR_PATH" in os.environ, "FIRMWARE_BUILD_DIR_PATH was not set as environment variable"
-    simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"] + "/linux/platform_linux/src/device/device_main")
-  
+    simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
+    simulation_exe_path = simulation_exe_path.expanduser().resolve()
+
     config._sonic_control_plugin = SonicControlPlugin(is_simulation, url, device, simulation_exe_path, log_path)
 
 
@@ -115,27 +116,32 @@ def process_management():
     kill_all("device_main")
 
 
-async def create_worker_process_impl(request, tmp_path):
+async def create_worker_process_impl(request, tmp_path_factory):
     # creates a worker process needed for the postman simulation
     
     plugin_config = request.config._sonic_control_plugin
     is_simulation: bool = plugin_config.is_simulation
     device_type: DeviceType = plugin_config.device_type
 
-    if not (is_simulation and device_type == DeviceType.POSTMAN):
-        return
+    if is_simulation and device_type == DeviceType.POSTMAN:
+        data_dir = tmp_path_factory.mktemp("data_worker")
+
+        simulation_file = plugin_config.simulation_exe_path
+        process = await asyncio.create_subprocess_exec(
+            str(simulation_file),
+            "--profile=modbus_worker", "--name=test_worker_with_postman", f"--data-dir={data_dir}",
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+
+        yield
+
+        if process.returncode is None:
+            process.kill() # We do not need to gracefully shutdown the process, it is anyways sand boxed
+            await asyncio.wait_for(process.wait(), timeout=1)
+    else:
+        # For some reason return breaks the code. Probably because pytest_async expects a Generator
+        # However yielding works fine
+        yield
     
-    simulation_file = plugin_config.simulation_exe_path.resolve()
-    process = await asyncio.create_subprocess_exec(
-        str(simulation_file),
-        "--profile=modbus_worker", "--name=test_worker_with_postman", f"--data-dir={tmp_path}",
-        stdin=asyncio.subprocess.DEVNULL,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-    )
-
-    yield
-
-    if process.returncode is None:
-        process.kill() # We do not need to gracefully shutdown the process, it is anyways sand boxed
-        await asyncio.wait_for(process.wait(), timeout=1)

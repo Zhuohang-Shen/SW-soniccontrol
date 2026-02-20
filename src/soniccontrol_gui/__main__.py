@@ -14,7 +14,7 @@ if __name__ == "__main__":
     if in_dev_env:
         # We could do this somehow else. But this is easy and simple
         WidgetRegistry.set_up()
-        simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"] + "/linux/platform_linux/src/device/device_main")
+        simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
 
     start_gui(simulation_exe_path)
  

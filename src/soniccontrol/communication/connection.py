@@ -58,7 +58,7 @@ class CLIConnection(Connection):
     process: asyncio.subprocess.Process = attrs.field(init=False)     
 
     async def open_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        expanded_bin_file = Path(self.bin_file).resolve()
+        expanded_bin_file = Path(self.bin_file).expanduser().resolve()
 
         self.process = await asyncio.create_subprocess_exec(
             str(expanded_bin_file),

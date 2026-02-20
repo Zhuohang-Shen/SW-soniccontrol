@@ -114,6 +114,8 @@ class ConnectionWindow(UIComponent):
         show_simulation_button = simulation_exe_path is not None
         self._view: ConnectionWindowView = ConnectionWindowView(show_simulation_button)
         
+        if simulation_exe_path:
+            simulation_exe_path = simulation_exe_path.expanduser().resolve()
         self._simulation_exe_path = simulation_exe_path
         super().__init__(None, self._view)
         # Create and PLACE the plugin slot (tabs=True -> Notebook; False -> stacked)
