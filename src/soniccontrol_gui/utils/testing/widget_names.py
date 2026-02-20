@@ -131,6 +131,13 @@ MEASURING_CONTROL_BUTTON = 'measuring.control_button'
 # Message Box constants
 MESSAGE_BOX = "MessageBox"
 MESSAGE_BOX_MSG = "MessageBox.message"
-for option in DialogOptions:
-    globals()[f"MESSAGE_BOX_OPTION_{option.name}"] = f"MessageBox.{option.name}"
+MESSAGE_BOX_OPTION_PROCEED = "MessageBox.PROCEED"
 
+
+EXPERIMENT_DATA_EXPERIMENT_NAME = "experiment.Experiment Data.experiment_name.entry_str"
+EXPERIMENT_DATA_AUTHORS = "experiment.Experiment Data.authors.entry_str"
+EXPERIMENT_DATA_TRANSDUCER_ID = "experiment.Experiment Data.transducer_id.entry_str"
+EXPERIMENT_DATA_ADD_ON_ID = "experiment.Experiment Data.add_on_id.entry_str"
+EXPERIMENT_DATA_CONNECTOR_TYPE = "experiment.Experiment Data.connector_type.entry_str"
+EXPERIMENT_DATA_MEDIUM = "experiment.Experiment Data.medium.entry_str"
+EXPERIMENT_DATA_DESCRIPTION = "experiment.Experiment Data.description.entry_str"

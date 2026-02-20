@@ -2,6 +2,7 @@ from typing import Any, Dict
 import attrs
 from sonic_protocol.command_codes import CommandCode, ICommandCode
 from sonic_protocol.field_names import EFieldName
+from sonic_protocol.schema import Loglevel
 
 
 class Command:
@@ -377,6 +378,14 @@ class RunTest(Command):
 class AbortTest(Command):
     def __attrs_post_init__(self):
         super().__init__(code=CommandCode.ABORT_TEST)
+
+@attrs.define()
+class SetLogLevel(Command):
+    def __attrs_post_init__(self):
+        super().__init__(code=CommandCode.SET_LOG_LEVEL)
+
+    index: str = attrs.field(alias=EFieldName.LOGGER_NAME.name)
+    value: Loglevel = attrs.field(alias=EFieldName.LOG_LEVEL.name)
 
 # Legacy specific commands
 
