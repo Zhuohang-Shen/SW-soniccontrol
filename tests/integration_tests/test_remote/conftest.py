@@ -1,14 +1,11 @@
-import asyncio
-from typing import Any, List, Tuple
 import pytest
 import pytest_asyncio
 from sonic_protocol.schema import DeviceParamConstants
 from soniccontrol import DeviceParamConstantType
 from soniccontrol.communication.connection import CLIConnection, SerialConnection
-from soniccontrol.remote_controller_v2 import RemoteController
+from soniccontrol.remote_controller import RemoteController
 from tests.integration_tests.conftest import Profile
 import os
-import shutil
 from pathlib import Path
 
 

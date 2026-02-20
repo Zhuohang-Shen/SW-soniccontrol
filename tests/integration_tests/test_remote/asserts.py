@@ -3,7 +3,7 @@ from pytest_check.context_manager import check
 from sonic_protocol.command_codes import CommandCode
 from soniccontrol import Answer, EFieldName
 from soniccontrol import Command
-from soniccontrol.remote_controller_v2 import RemoteController
+from soniccontrol.remote_controller import RemoteController
 
 
 def assert_answer(answer: Answer, expected_fields: Dict[EFieldName, Any], should_be_valid: bool = True):
