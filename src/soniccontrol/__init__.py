@@ -10,5 +10,6 @@ from sonic_protocol.schema import DeviceParamConstantType, Procedure, Loglevel, 
 from soniccontrol.procedures.procs import ScanArgs, AutoArgs, TuneArgs, WipeArgs, RamperArgs, SpectrumMeasureArgs
 from soniccontrol.data_capturing.experiment import Experiment, ExperimentMetaData
 from soniccontrol.data_capturing.experiment_store import HDF5ExperimentReader, HDF5ExperimentWriter
+from soniccontrol.communication.connection import CLIConnection, SerialConnection
 
 logger = logging.getLogger(__name__)

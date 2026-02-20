@@ -19,6 +19,7 @@ CONFIGURATION_TAB = "left_notebook.Configuration_tab"
 MEASURING_TAB = "right_notebook.Sonic Measure_tab"
 SPECTRUM_MEASURE_TAB = "left_notebook.Spectrum Measure_tab"
 
+POSTMAN_CONNECT_TO_WORKER_BUTTON = "postman_home_tab.connect_to_worker_button"
 
 # Connection constants
 CONNECTION_PORTS_COMBOBOX = 'connection.ports_combobox'

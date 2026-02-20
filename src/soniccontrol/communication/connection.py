@@ -6,8 +6,6 @@ from typing import List, Tuple
 
 from serial_asyncio import open_serial_connection
 import logging
-import atexit
-import psutil
 
 
 @attrs.define()
@@ -59,18 +57,8 @@ class CLIConnection(Connection):
     cmd_args: List[str] = attrs.field(factory=list) 
     process: asyncio.subprocess.Process = attrs.field(init=False)     
 
-    def _kill_all(self, process_name: str):
-        """
-        Needed to ensure that the previous simulation process get killed, before starting a new one
-        """
-        for proc in psutil.process_iter(["name"]):
-            if proc.info["name"] == process_name:
-                proc.kill()
-
     async def open_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        expanded_bin_file = Path(self.bin_file).expanduser()
-        process_name = expanded_bin_file.name
-        self._kill_all(process_name) # FIXME: could be problematic together with postman and worker simulation 
+        expanded_bin_file = Path(self.bin_file).resolve()
 
         self.process = await asyncio.create_subprocess_exec(
             str(expanded_bin_file),

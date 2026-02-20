@@ -14,6 +14,7 @@ from soniccontrol.updater import Updater
 from soniccontrol_gui.constants import style, ui_labels, sizes
 from soniccontrol_gui.ui_component import UIComponent
 from soniccontrol_gui.utils.image_loader import ImageLoader
+from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.view import TabView, View
 from soniccontrol_gui.views.control.logging import Logging
 from soniccontrol_gui.views.control.serialmonitor import SerialMonitor
@@ -177,6 +178,7 @@ class PostmanHomeTabView(TabView):
         return ui_labels.HOME_LABEL
 
     def _initialize_children(self) -> None:
+        tab_name = "postman_home_tab"
 
         self._main_frame: ScrolledFrame = ScrolledFrame(self, autohide=True)
 
@@ -191,6 +193,8 @@ class PostmanHomeTabView(TabView):
             text=ui_labels.OPEN_WORKER_WINDOW,
             bootstyle=ttk.DARK
         )
+
+        WidgetRegistry.register_widget(self._connect_to_worker_button, "connect_to_worker_button", tab_name)
 
     def _initialize_publish(self) -> None:
         self.pack(fill=ttk.BOTH, padx=3, pady=3)

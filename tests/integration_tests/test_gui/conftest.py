@@ -5,22 +5,22 @@ import pytest
 import pytest_asyncio
 from ttkbootstrap.utility import enable_high_dpi_awareness
 
+from soniccontrol import DeviceType
 from soniccontrol.app_config import PLATFORM, System
 from soniccontrol_gui.plugins.device_plugin import register_device_plugins
 from soniccontrol_gui.utils.image_loader import ImageLoader
 from soniccontrol_gui.utils.widget_registry import WidgetRegistry
 from soniccontrol_gui.views.core.connection_window import ConnectionWindow
-from tests.integration_tests.conftest import Profile
 from soniccontrol_gui.utils.testing import widget_names
 from soniccontrol_gui.utils.testing.gui_controller import GuiController
 from soniccontrol_gui.utils.testing.workflows import send_over_serial_monitor
+from tests.integration_tests.conftest import create_worker_process_impl
 
 
 # NOTE: If you write a Test, it will automatically use the fixtures below, because they are autouse=True
 # Also their scope is package, so they are executed once for the whole folder.
 # They have an own event loop and you have to set loop_scope="package" on the Tests, 
 # in order to tell pytest_asyncio, that the same event loop should be used to run the tests.
-
 
 @pytest_asyncio.fixture(scope="package")
 async def connection_window(request):
@@ -47,40 +47,56 @@ async def connection_window(request):
     ImageLoader.clear_resources()
 
 
+create_worker_process = pytest_asyncio.fixture(create_worker_process_impl, scope="package")
+
 @pytest_asyncio.fixture(scope="package", autouse=True)
-async def device_window(request, connection_window, tmp_path_factory):
+async def device_window(request, connection_window, tmp_path_factory, create_worker_process):
     controller = GuiController()    
 
-    profile: Profile = request.config._sonic_control_plugin.profile
+    is_simulation = request.config._sonic_control_plugin.is_simulation
+    device_type = request.config._sonic_control_plugin.device_type
     url: str = request.config._sonic_control_plugin.url
     data_dir = tmp_path_factory.mktemp("data")
 
-    if profile == Profile.device_descale or profile == Profile.device_worker:
+    if not is_simulation:
         controller.set_widget_text(widget_names.CONNECTION_PORTS_COMBOBOX, url)
         # calling this method directly here ensures 
         # that the whole device window gets loaded, 
         # before continuing 
         connection_window._on_connect_via_url() 
     else:
-        if profile == Profile.simulation_descale:
+        if device_type == DeviceType.DESCALE:
             controller.set_widget_text(
                 widget_names.CONNECTION_SIMULATION_CMD_ARGS, 
                 f"--name=test_descale --profile=descale --data-dir=\"{data_dir}\""
             )
-        elif profile == Profile.simulation_worker:
+        elif device_type == DeviceType.MVP_WORKER:
             controller.set_widget_text(
                 widget_names.CONNECTION_SIMULATION_CMD_ARGS, 
                 f"--name=test_worker --profile=worker --data-dir=\"{data_dir}\""
             )
+        elif device_type == DeviceType.POSTMAN:
+            controller.set_widget_text(
+                widget_names.CONNECTION_SIMULATION_CMD_ARGS, 
+                f"--name=test_postman --profile=postman --data-dir=\"{data_dir}\""
+            )
         else:
-            raise NotImplementedError(f"For the {profile} no case is implemented")
+            raise NotImplementedError(f"For the {device_type} no case is implemented")
 
         # calling this method directly here ensures 
         # that the whole device window gets loaded, 
         # before continuing 
         connection_window._on_connect_to_simulation()
     await connection_window.wait_until_connected()
-    connection_window._view.update() # handle all events from tkinter. Ensure everything is loaded
+
+    # handle all events from tkinter. Ensure everything is loaded
+    await controller.execute_events_until_idle()
+
+    if device_type == DeviceType.POSTMAN:
+        # connect to the worker over the postman window
+        # the fixture create_worker_process is responsible for starting the worker simulation process
+        controller.press_button(widget_names.POSTMAN_CONNECT_TO_WORKER_BUTTON)
+        await controller.execute_events_until_idle()
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)

@@ -1,35 +1,41 @@
+import asyncio
 import pytest
 import pytest_asyncio
 from sonic_protocol.schema import DeviceParamConstants
 from soniccontrol import DeviceParamConstantType
 from soniccontrol.communication.connection import CLIConnection, SerialConnection
-from soniccontrol.remote_controller import RemoteController
-from tests.integration_tests.conftest import Profile
+from soniccontrol import RemoteController, DeviceType
 import os
 from pathlib import Path
+from tests.integration_tests.conftest import create_worker_process_impl
 
+
+create_worker_process = pytest_asyncio.fixture(create_worker_process_impl, scope="function")
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def remote_controller(request, tmp_path):
+async def remote_controller(request, tmp_path, create_worker_process):
     # setup
     plugin_config = request.config._sonic_control_plugin
-    profile: Profile = plugin_config.profile
+    is_simulation: bool = plugin_config.is_simulation
+    device_type: DeviceType = plugin_config.device_type
     url: str = plugin_config.url
 
-    simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"]) / "linux/platform_linux/src/device/device_main"
+    data_dir_arg = f"--data-dir={tmp_path}"
 
     connection = None
-    match profile:
-        case Profile.simulation_worker:
-            cmd_args = ["--profile=worker", "--name=test_worker", f"--data-dir={tmp_path}"]
-            connection = CLIConnection(profile.name, simulation_exe_path, cmd_args=cmd_args)
-        case Profile.simulation_descale:
-            cmd_args = ["--profile=descale", "--name=test_descale", f"--data-dir={tmp_path}"]
-            connection = CLIConnection(profile.name, simulation_exe_path, cmd_args=cmd_args)
-        case Profile.device_worker | Profile.device_descale:
-            connection = SerialConnection(profile.name, url)
-        case _:
-            raise NotImplementedError(f"connection setup not implemented for profile {profile}")
+    if is_simulation:
+        match device_type:
+            case DeviceType.MVP_WORKER:
+                cmd_args = ["--profile=worker", "--name=test_worker", data_dir_arg]
+            case DeviceType.DESCALE:
+                cmd_args = ["--profile=descale", "--name=test_descale", data_dir_arg]
+            case DeviceType.POSTMAN:
+                cmd_args = ["--profile=postman", "--name=test_postman", data_dir_arg]
+            case _:
+                raise NotImplementedError(f"connection setup not implemented for device {device_type}")
+        connection = CLIConnection(device_type.name, plugin_config.simulation_exe_path, cmd_args=cmd_args)
+    else:
+        connection = SerialConnection(device_type.name, url)
 
     controller = await RemoteController.connect(connection)
     await controller.stop_updater()
@@ -37,7 +43,7 @@ async def remote_controller(request, tmp_path):
     
     assert controller.is_connected, "Controller not connected to device"
     actual_device_type = controller.device_info.device_type
-    assert actual_device_type == plugin_config.device_type, f"Expected to connect to a {actual_device_type} but instead connected to a {plugin_config.device_type}"
+    assert actual_device_type == device_type, f"Expected to connect to a {actual_device_type} but instead connected to a {plugin_config.device_type}"
 
     # return
     yield controller

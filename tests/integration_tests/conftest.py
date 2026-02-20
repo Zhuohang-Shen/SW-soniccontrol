@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum, auto
 import os
 from pathlib import Path
@@ -5,17 +6,20 @@ from typing import List
 import attrs
 from sonic_protocol.schema import DeviceType
 import pytest
+import psutil
 
 
 class Profile(Enum):
     simulation_worker = auto()
     simulation_descale = auto()
+    simulation_postman_worker = auto()
     device_worker = auto()
     device_descale = auto()
+    device_postman_worker = auto()
 
 @attrs.define()
 class SonicControlPlugin:
-    profile: Profile = attrs.field()
+    is_simulation: bool = attrs.field()
     url: str | None = attrs.field()
     device_type: DeviceType = attrs.field()
     simulation_exe_path: Path = attrs.field()
@@ -60,13 +64,21 @@ def pytest_configure(config):
             device = DeviceType.DESCALE
         case Profile.simulation_worker | Profile.device_worker:
             device = DeviceType.MVP_WORKER
+        case Profile.device_postman_worker | Profile.simulation_postman_worker:
+            device = DeviceType.POSTMAN
         case _:
             raise NotImplementedError("This profile is not supported")
     
+    is_simulation = profile in [
+        Profile.simulation_descale, 
+        Profile.simulation_worker, 
+        Profile.simulation_postman_worker
+    ]
+
     assert "FIRMWARE_BUILD_DIR_PATH" in os.environ, "FIRMWARE_BUILD_DIR_PATH was not set as environment variable"
     simulation_exe_path = Path(os.environ["FIRMWARE_BUILD_DIR_PATH"] + "/linux/platform_linux/src/device/device_main")
   
-    config._sonic_control_plugin = SonicControlPlugin(profile, url, device, simulation_exe_path, log_path)
+    config._sonic_control_plugin = SonicControlPlugin(is_simulation, url, device, simulation_exe_path, log_path)
 
 
 def pytest_runtest_setup(item):
@@ -82,3 +94,48 @@ def pytest_runtest_setup(item):
     device_type = item.config._sonic_control_plugin.device_type
     if device_type not in allowed_devices:
         pytest.skip(f"The device type {device_type.name} is not supported for this test")
+
+
+def kill_all(process_name: str):
+    """
+    Needed to ensure that the previous simulation process get killed, before starting a new one
+    """
+    for proc in psutil.process_iter(["name"]):
+        if proc.info["name"] == process_name:
+            proc.kill()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def process_management():
+    # This ensures that no simulation is running before and after the tests
+    kill_all("device_main")
+
+    yield
+
+    kill_all("device_main")
+
+
+async def create_worker_process_impl(request, tmp_path):
+    # creates a worker process needed for the postman simulation
+    
+    plugin_config = request.config._sonic_control_plugin
+    is_simulation: bool = plugin_config.is_simulation
+    device_type: DeviceType = plugin_config.device_type
+
+    if not (is_simulation and device_type == DeviceType.POSTMAN):
+        return
+    
+    simulation_file = plugin_config.simulation_exe_path.resolve()
+    process = await asyncio.create_subprocess_exec(
+        str(simulation_file),
+        "--profile=modbus_worker", "--name=test_worker_with_postman", f"--data-dir={tmp_path}",
+        stdin=asyncio.subprocess.DEVNULL,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+
+    yield
+
+    if process.returncode is None:
+        process.kill() # We do not need to gracefully shutdown the process, it is anyways sand boxed
+        await asyncio.wait_for(process.wait(), timeout=1)
