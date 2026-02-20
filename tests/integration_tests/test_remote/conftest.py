@@ -1,12 +1,9 @@
-import asyncio
 import pytest
 import pytest_asyncio
 from sonic_protocol.schema import DeviceParamConstants
 from soniccontrol import DeviceParamConstantType
 from soniccontrol.communication.connection import CLIConnection, SerialConnection
 from soniccontrol import RemoteController, DeviceType
-import os
-from pathlib import Path
 from tests.integration_tests.conftest import create_worker_process_impl
 
 
