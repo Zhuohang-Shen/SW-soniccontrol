@@ -3,7 +3,7 @@ from soniccontrol_gui.utils.testing.gui_controller import GuiController
 import pytest
 from soniccontrol import DeviceType
 
-@pytest.mark.allowed_devices(DeviceType.MVP_WORKER, DeviceType.CRYSTAL)
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER, DeviceType.CRYSTAL, DeviceType.POSTMAN)
 @pytest.mark.asyncio(loop_scope="package")
 async def test_set_frequency_over_home_tab():
     controller = GuiController()

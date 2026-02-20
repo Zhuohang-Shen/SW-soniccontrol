@@ -97,6 +97,9 @@ async def device_window(request, connection_window, tmp_path_factory, create_wor
         # connect to the worker over the postman window
         # the fixture create_worker_process is responsible for starting the worker simulation process
         controller.press_button(widget_names.POSTMAN_CONNECT_TO_WORKER_BUTTON)
+        # We just wait until some worker specific widget got registered.
+        # FIXME: I have no idea how I should implement waiting for the worker to be connected. Maybe registering the device window. Idk.
+        await controller.wait_for_widget_to_be_registered(widget_names.SPECTRUM_MEASURE_TAB, 5.0)
         await controller.execute_events_until_idle()
 
 

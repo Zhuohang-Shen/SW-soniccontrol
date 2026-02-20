@@ -30,7 +30,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--profile",
         action="store",
-        default=Profile.simulation_worker.name,
+        default=Profile.simulation_postman_worker.name,
         choices=(profile.name for profile in Profile),
         help="Choose a profile to execute",
     )
@@ -129,7 +129,7 @@ async def create_worker_process_impl(request, tmp_path_factory):
         simulation_file = plugin_config.simulation_exe_path
         process = await asyncio.create_subprocess_exec(
             str(simulation_file),
-            "--profile=modbus_worker", "--name=test_worker_with_postman", f"--data-dir={data_dir}",
+            "--profile=worker_modbus", "--name=test_worker_with_postman", f"--data-dir={data_dir}",
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,
