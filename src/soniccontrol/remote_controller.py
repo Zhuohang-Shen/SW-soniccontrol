@@ -37,14 +37,14 @@ class RemoteController:
     making it also more suitable to use together with fixtures
     """
 
-    def __init__(self, connection: Connection, device: SonicDevice, logger: logging.Logger):
-        self._connection = connection
+    def __init__(self, device: SonicDevice, logger: logging.Logger):
         self._device: SonicDevice = device
         self._logger = logger    
         self._updater: Updater = Updater(self._device)
         self._updater.start()
         self._proc_controller: ProcedureController = ProcedureController(self._device, updater=self._updater)
         self._scripting: NewScriptingFacade = NewScriptingFacade()
+
 
     @staticmethod
     async def connect(connection: Connection, log_path: Optional[Path]=None):
@@ -56,19 +56,25 @@ class RemoteController:
         await communicator.open_communication(connection)
         device = await device_builder.build_amp(communicator)
         
-        if device.info.device_type == DeviceType.POSTMAN:
-            postman = device
-            worker_communicator = PostmanProxyCommunicator(communicator)
-            await worker_communicator.open_communication(connection)
-            device = await device_builder.build_amp(worker_communicator)
-            
-            loop = asyncio.get_running_loop()
-            worker_communicator.subscribe(
-                communicator.DISCONNECTED_EVENT, 
-                lambda _: loop.run_until_complete(postman.disconnect())
-            )
+        return RemoteController(device, logger)
+    
+    async def connect_to_worker(self):
+        assert self._device.info.device_type == DeviceType.POSTMAN, "This function works only for postman devices"
 
-        return RemoteController(connection, device, logger)
+        await asyncio.wait_for(self._device.wait_until_worker_connected(), 10.0)
+
+        worker_communicator = PostmanProxyCommunicator(self._device.communicator)
+        await worker_communicator.open_communication(None)
+        worker_device = await DeviceBuilder(logger=self._logger).build_amp(worker_communicator)
+        
+        loop = asyncio.get_running_loop()
+        worker_communicator.subscribe(
+            worker_communicator.DISCONNECTED_EVENT, 
+            lambda _: loop.run_until_complete(self._device.disconnect())
+        )
+
+        return RemoteController(worker_device, self._logger)
+
 
     def is_connected(self) -> bool:
         return self._device.communicator.connection_opened.is_set()
@@ -138,17 +144,6 @@ class RemoteController:
     async def disconnect(self) -> None:
         await self._updater.stop()
         await self._device.disconnect()
-
-    async def reconnect(self) -> None:
-        is_updater_running = self._updater.running.is_set()
-
-        await self._updater.stop()
-        await self._device.disconnect()
-
-        await self._device.communicator.open_communication(self._connection)
-        if is_updater_running:
-            # restart after stopping
-            self._updater.start()
     
     @property
     def updater(self):

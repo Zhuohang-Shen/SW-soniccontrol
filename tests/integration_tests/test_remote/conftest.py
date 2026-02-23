@@ -1,3 +1,4 @@
+from pathlib import Path
 import pytest
 import pytest_asyncio
 from sonic_protocol.schema import DeviceParamConstants
@@ -16,6 +17,7 @@ async def remote_controller(request, tmp_path, create_worker_process):
     is_simulation: bool = plugin_config.is_simulation
     device_type: DeviceType = plugin_config.device_type
     url: str = plugin_config.url
+    log_path: Path = plugin_config.log_path
 
     data_dir_arg = f"--data-dir={tmp_path}"
 
@@ -34,16 +36,26 @@ async def remote_controller(request, tmp_path, create_worker_process):
     else:
         connection = SerialConnection(device_type.name, url)
 
-    controller = await RemoteController.connect(connection)
+    controller = await RemoteController.connect(connection, log_path)
     await controller.stop_updater()
     await controller.stop_running_processes()
     
     assert controller.is_connected, "Controller not connected to device"
-    actual_device_type = controller.device_info.device_type
-    assert actual_device_type == device_type, f"Expected to connect to a {plugin_config.device_type} but instead connected to a {actual_device_type}"
+    actual_device_type = controller.device_info.device_type 
+    assert actual_device_type == device_type, f"Expected to connect to a {device_type} but instead connected to a {actual_device_type}"
 
-    # return
-    yield controller
+    if device_type == DeviceType.POSTMAN:
+        # if we have a postman, we want to use it as middleman to the worker
+        worker_controller = await controller.connect_to_worker()
+        await worker_controller.stop_updater()
+        await worker_controller.stop_running_processes()
+
+        yield worker_controller
+
+        await worker_controller.disconnect()
+
+    else:
+        yield controller
 
     # teardown
     await controller.disconnect()

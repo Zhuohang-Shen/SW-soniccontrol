@@ -75,6 +75,7 @@ class TestExecutor(EventManager):
     async def _run_test(self, test: TestInfo):
         try:
             test.test_result = None
+            # needed to tell the gui which test gets executed
             self._set_running_test_index(test.index)
 
             while True:
@@ -97,7 +98,7 @@ class TestExecutor(EventManager):
                     semi_automated_step=SemiAutomatedStep(interaction_type, msg),
                     test=test
                 ))
-
+                
                 await self._user_interacted_flag.wait()
                 self._user_interacted_flag.clear()
 

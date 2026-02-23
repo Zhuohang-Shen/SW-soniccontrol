@@ -1,9 +1,10 @@
+import asyncio
 from typing import List
 import logging
 
 import attrs
 from sonic_protocol.command_codes import CommandCode
-from sonic_protocol.field_names import BaseFieldName
+from sonic_protocol.field_names import BaseFieldName, EFieldName
 from sonic_protocol.python_parser.answer import Answer, AnswerValidator
 from sonic_protocol.python_parser.answer_validator_builder import AnswerValidatorBuilder
 from sonic_protocol.python_parser.command_deserializer import CommandDeserializer
@@ -217,3 +218,14 @@ class SonicDevice:
         if self.has_command(commands.SonicForce()):
             await self.execute_command(commands.SonicForce(), raise_exception=False)
 
+
+    async def wait_until_worker_connected(self):
+        assert self.info.device_type == DeviceType.POSTMAN, "This method only works for Postman Devices"
+
+        while True:
+            answer = await self.execute_command(commands.GetConnectionStatus())   
+            if answer.field_value_dict[EFieldName.IS_CONNECTED]:
+                break         
+
+            await asyncio.sleep(0.2)
+    

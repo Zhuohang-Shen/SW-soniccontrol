@@ -11,8 +11,8 @@ async def test_if_devices_saves_transducer_state(remote_controller):
     gain = 96
     await send_command_and_check_response(remote_controller, commands.SetGain(gain))
 
-    await remote_controller.disconnect()
-    await remote_controller.reconnect()
+    # FIXME: how should this test work
+    await remote_controller.send_command(commands.RestartDevice())
 
     answer = await remote_controller.send_command(commands.GetUpdate())
     assert_answer(answer, { EFieldName.GAIN: gain })

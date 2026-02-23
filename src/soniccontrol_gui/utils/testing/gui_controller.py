@@ -67,7 +67,7 @@ class GuiController:
         for _ in range(max_iter):
             root.update_idletasks()
             root.update()
-            await asyncio.sleep(0)    
+            await asyncio.sleep(0) # basically yields, and lets the event loop run. Cooperative scheduling  
 
     def clear_text_changed_flags(self):
         WidgetRegistry.clear_text_changed_flags()

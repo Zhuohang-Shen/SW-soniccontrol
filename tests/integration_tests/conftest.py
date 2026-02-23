@@ -138,7 +138,7 @@ async def create_worker_process_impl(request, tmp_path_factory):
         yield
 
         if process.returncode is None:
-            process.kill() # We do not need to gracefully shutdown the process, it is anyways sand boxed
+            process.terminate() # We need to gracefully shutdown the process, so that the socket gets properly freed
             await asyncio.wait_for(process.wait(), timeout=1)
     else:
         # For some reason return breaks the code. Probably because pytest_async expects a Generator
