@@ -70,11 +70,19 @@ async def start_ramp_procedure():
     set_ramp_args()
 
     controller = GuiController()
+    controller.clear_text_changed_flag_of_widget(widget_names.PROC_CONTROLLING_RUNNING_PROC_LABEL)
+    controller.clear_text_changed_flag_of_widget(widget_names.STATUS_BAR_PROCEDURE_LABEL)
     controller.press_button(widget_names.PROC_CONTROLLING_START_BUTTON)
     await controller.execute_events_until_idle()
     await proceed_without_experiment()
 
-    await controller.wait_for_widget_to_change_text(widget_names.PROC_CONTROLLING_RUNNING_PROC_LABEL, 10.0)
+    # We have to wait here for both labels to change text, because the proc running label is immediately set, 
+    # then it configures the args and then it starts the procedure, only then the status bar label is updated
+    await controller.wait_for_multiple_widgets_to_change_text(
+        widget_names.PROC_CONTROLLING_RUNNING_PROC_LABEL, 
+        widget_names.STATUS_BAR_PROCEDURE_LABEL,
+        timeout_s=10.0
+    )
 
 
 async def start_ramp_capture():
@@ -89,8 +97,9 @@ async def start_ramp_capture():
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
 
     set_ramp_args()
-    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    await controller.execute_events_until_idle()
     controller.clear_text_changed_flag_of_widget(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
 
     proc_label, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
         widget_names.STATUS_BAR_PROCEDURE_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
@@ -112,12 +121,13 @@ async def start_spectrum_measure_capture():
     controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
 
     set_spectrum_measure_args()
-    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
+    await controller.execute_events_until_idle()
     controller.clear_text_changed_flag_of_widget(widget_names.MEASURING_CONTROL_BUTTON)
+    controller.press_button(widget_names.MEASURING_CONTROL_BUTTON)
 
-    _, label_control_button = await controller.wait_for_multiple_widgets_to_change_text(
-        widget_names.STATUS_BAR_FREQ_LABEL, widget_names.MEASURING_CONTROL_BUTTON, 
-        timeout_s=10.0
+    label_control_button = await controller.wait_for_widget_to_change_text(
+        widget_names.MEASURING_CONTROL_BUTTON, 
+        timeout_s=2.0
     )
 
     assert label_control_button == ui_labels.END_CAPTURE

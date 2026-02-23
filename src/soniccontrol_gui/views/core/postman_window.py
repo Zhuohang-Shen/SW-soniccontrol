@@ -73,13 +73,13 @@ class PostmanHomeTab(UIComponent):
 
             self._view.enable_connection_button(True)
         else:
+            await worker_device.stop_running_processes()
             self._worker_device_window = KnownDeviceWindow(
                 worker_device, self._view.root, self._connection_name)
             self._worker_device_window.view.focus_set()
             worker_device.communicator.subscribe(Communicator.DISCONNECTED_EVENT, self._on_close_communication_worker)
             self._worker_device_window.subscribe(DeviceWindow.CLOSE_EVENT, self._on_close_communication_worker)  
             self._worker_device_window.subscribe(DeviceWindow.RECONNECT_EVENT, lambda _: self._on_connect_to_worker())
-        
 
     @async_handler
     async def _on_close_communication_worker(self, e: Event):

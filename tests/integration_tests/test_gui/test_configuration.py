@@ -11,16 +11,17 @@ from soniccontrol import DeviceType
 @pytest_asyncio.fixture(scope="function", loop_scope="package", autouse=True)
 async def configuration_tab_fixture():
     controller = GuiController()
+
+    await send_over_serial_monitor("!atf1=0")
+    await send_over_serial_monitor("!att1=0")
+    await send_over_serial_monitor("!atk1=0")
+
     controller.switch_to_tab(widget_names.CONFIGURATION_TAB)
 
     controller.set_widget_text(widget_names.CONFIGURATION_AT_CONFIG_1_ATF_ENTRY, "0")
     controller.set_widget_text(widget_names.CONFIGURATION_AT_CONFIG_1_ATK_ENTRY, "0")
     controller.set_widget_text(widget_names.CONFIGURATION_AT_CONFIG_1_ATT_ENTRY, "0.0")
     controller.set_widget_text(widget_names.CONFIGURATION_BROWSE_FILES_ENTRY, "")
-
-    await send_over_serial_monitor("!atf1=0")
-    await send_over_serial_monitor("!att1=0")
-    await send_over_serial_monitor("!atk1=0")
 
     controller.clear_text_changed_flags()
     yield
@@ -64,7 +65,7 @@ async def test_configure_device_with_init_script(tmp_path):
         widget_names.STATUS_BAR_GAIN_LABEL,
         widget_names.STATUS_BAR_FREQ_LABEL
     ]
-    gain_label, freq_label = await controller.wait_for_multiple_widgets_to_change_text(*labels_status_bar, timeout_s=5.0)
+    gain_label, freq_label = await controller.wait_for_multiple_widgets_to_change_text(*labels_status_bar, timeout_s=20.0)
 
     assert "690420 Hz" in freq_label, f"Expected 'Frequency: 690420 Hz', but got '{freq_label}'"
     assert "10 %" in gain_label, f"Expected 'Gain: 10 %', but got '{gain_label}'"

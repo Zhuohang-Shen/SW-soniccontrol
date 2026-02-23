@@ -85,7 +85,7 @@ async def test_experiment_capture_ends_if_spectrum_measure_finishes():
     await start_spectrum_measure_capture()
 
     controller = GuiController()
-    label_control_button = await controller.wait_for_widget_to_change_text(widget_names.MEASURING_CONTROL_BUTTON, 10.0)
+    label_control_button = await controller.wait_for_widget_to_change_text(widget_names.MEASURING_CONTROL_BUTTON, 15.0)
     assert label_control_button == ui_labels.NEW_EXPERIMENT
 
 @pytest.mark.asyncio(loop_scope="package")

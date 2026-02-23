@@ -128,7 +128,7 @@ async def test_if_invalid_syntax_throws_error(remote_controller, formatted_comma
 
 
 # TODO: use more consts
-@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER, DeviceType.POSTMAN)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("formatted_command_str", [
     ("!gain=100", []),
@@ -147,7 +147,7 @@ async def test_if_basic_setter_commands_work(remote_controller, formatted_comman
     assert answer.valid, "Answer was not valid"
 
 
-@pytest.mark.allowed_devices(DeviceType.MVP_WORKER)
+@pytest.mark.allowed_devices(DeviceType.MVP_WORKER, DeviceType.POSTMAN)
 @pytest.mark.asyncio
 async def test_if_freq_set_by_setter_can_be_retrieved_with_getter(remote_controller):
     consts = remote_controller.protocol_consts

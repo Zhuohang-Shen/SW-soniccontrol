@@ -40,7 +40,7 @@ async def remote_controller(request, tmp_path, create_worker_process):
     
     assert controller.is_connected, "Controller not connected to device"
     actual_device_type = controller.device_info.device_type
-    assert actual_device_type == device_type, f"Expected to connect to a {actual_device_type} but instead connected to a {plugin_config.device_type}"
+    assert actual_device_type == device_type, f"Expected to connect to a {plugin_config.device_type} but instead connected to a {actual_device_type}"
 
     # return
     yield controller
